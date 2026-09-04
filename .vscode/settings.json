@@ -1,0 +1,27 @@
+{
+  "editor.formatOnSave": true,
+  // Перемикаємо головний форматувальник цього проєкту на Biome
+  "editor.defaultFormatter": "biomejs.biome",
+
+  // Вимикаємо Prettier, щоб він не перезаписував лапки
+  "prettier.enable": false,
+
+  // Явно вказуємо Biome для кожної мови проєкту
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+
+  "css.lint.unknownAtRules": "ignore"
+}
