@@ -2,29 +2,19 @@
   "name": "chatter",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev:client": "npm --workspace=client run dev",
+    "dev:server": "npm --workspace=server run dev",
+    "build:client": "npm --workspace=client run build",
+    "build:server": "npm --workspace=server run build",
     "lint": "biome check",
-    "format": "biome format --write",
-    "dev:server": "npm --prefix server run dev"
-  },
-  "dependencies": {
-    "lucide-react": "^1.41.0",
-    "next": "16.3.4",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "zustand": "^5.0.15"
+    "format": "biome format --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.2",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@biomejs/biome": "2.4.2"
   }
 }

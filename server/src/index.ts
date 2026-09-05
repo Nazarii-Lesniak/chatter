@@ -3,7 +3,7 @@ import express from 'express';
 import { WebSocketServer } from 'ws';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3005;
 
 app.get('/api/ping', (_request, response) => {
   response.json({ status: 'ok', message: 'Server is running' });
