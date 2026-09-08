@@ -1,14 +1,20 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #ffffff;
-  --color-foreground: #171717;
+  --color-chat-background: #eff6fc;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-roboto-sans);
+  --font-mono: var(--font-roboto-mono);
+
+  --shadow-input-glow: 0 4px 5px 2px rgb(121 197 239 / 38%);
+  --shadow-input-glow-focus: 0 4px 6px 3px rgb(121 197 239 / 70%);
+
+  --color-chat-text-muted: #7c7c7c;
+  --color-chat-text-main: #303030;
+
+  --default-transition-duration: 300ms;
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--color-chat-background);
 }
