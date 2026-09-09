@@ -1,44 +1,27 @@
 import { CameraIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
+import { Button } from '@/shared/ui/button/Button';
 import * as Input from '@/shared/ui/input/Input';
 
 export default function MessageInput() {
   return (
     <Input.Root variant="message">
       <Input.Icon>
-        <button
-          type="button"
-          className="text-chat-text-main hover:text-chat-text-main/80 transition-colors cursor-pointer"
-        >
-          <PaperclipIcon
-            aria-label="Attach file"
-            className="size-6 md:size-8 lg:size-10"
-          />
-        </button>
+        <Button variant="addon">
+          <PaperclipIcon aria-label="Attach file" />
+        </Button>
       </Input.Icon>
 
       <Input.Textarea placeholder="Type your message here..." />
 
       <Input.Icon>
-        <button
-          type="button"
-          className="text-chat-text-main hover:text-chat-text-main/80 transition-colors cursor-pointer"
-        >
-          <SmileIcon
-            aria-label="Select Emoji"
-            className="size-6 md:size-8 lg:size-10"
-          />
-        </button>
+        <Button variant="addon">
+          <SmileIcon aria-label="Select Emoji" />
+        </Button>
       </Input.Icon>
       <Input.Icon>
-        <button
-          type="button"
-          className="text-chat-text-main hover:text-chat-text-main/80 transition-colors cursor-pointer"
-        >
-          <CameraIcon
-            aria-label="Select photo"
-            className="size-6 md:size-8 lg:size-10"
-          />
-        </button>
+        <Button variant="addon">
+          <CameraIcon aria-label="Select photo" />
+        </Button>
       </Input.Icon>
     </Input.Root>
   );

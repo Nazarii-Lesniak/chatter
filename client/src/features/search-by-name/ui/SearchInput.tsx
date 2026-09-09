@@ -1,21 +1,16 @@
 import { SearchIcon } from 'lucide-react';
-import { Input } from '@/shared/ui/input/Input';
+import { Button } from '@/shared/ui/button/Button';
+import * as Input from '@/shared/ui/input/Input';
 
 export default function SearchInput() {
   return (
-    <Input variant="search">
+    <Input.Root variant="search">
       <Input.Icon>
-        <button
-          type="button"
-          className="text-chat-text-muted hover:text-chat-text-muted/80 transition-colors cursor-pointer"
-        >
-          <SearchIcon
-            aria-label="Search"
-            className="size-6 md:size-8 lg:size-10"
-          />
-        </button>
+        <Button variant="search">
+          <SearchIcon aria-label="Search" />
+        </Button>
       </Input.Icon>
       <Input.Field type="text" placeholder="Search" />
-    </Input>
+    </Input.Root>
   );
 }
