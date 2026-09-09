@@ -2,6 +2,9 @@
 
 @theme inline {
   --color-chat-background: #eff6fc;
+  --color-chat-sidebar: #6e00ff;
+  --color-white: #fff;
+  --color-grey: #7c7c7c;
 
   --font-sans: var(--font-roboto-sans);
   --font-mono: var(--font-roboto-mono);
@@ -9,8 +12,14 @@
   --shadow-input-glow: 0 4px 5px 2px rgb(121 197 239 / 38%);
   --shadow-input-glow-focus: 0 4px 6px 3px rgb(121 197 239 / 70%);
 
-  --color-chat-text-muted: #7c7c7c;
+  --color-chat-text-muted: var(--color-grey);
   --color-chat-text-main: #303030;
+
+  --color-chat-icon-sidebar: var(--color-white);
+  --color-chat-icon-action: #9747ff;
+  --color-chat-icon-addon: #333;
+  --color-chat-icon-voice: var(--color-white);
+  --color-chat-icon-search: var(--color-grey);
 
   --default-transition-duration: 300ms;
 }
