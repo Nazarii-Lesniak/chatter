@@ -30,10 +30,10 @@ export default function ChatPage() {
           <LogOut aria-label="Logout" />
         </Button>
       </div>
+      <SearchInput />
       <div className="flex flex-col w-full justify-center items-center gap-10">
-        <SearchInput />
-        <MessageInput />
         <ChatContent />
+        <MessageInput />
       </div>
     </main>
   );
