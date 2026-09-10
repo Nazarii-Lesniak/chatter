@@ -1,37 +1,14 @@
-import { Bell, Home, LogOut, MessageCircleMore, Settings } from 'lucide-react';
 import SearchInput from '@/features/search-by-name/ui/SearchInput';
 import MessageInput from '@/features/send-message/MessageInput';
 import { ChatContent } from '@/features/ui/ChatContent';
-import { Button } from '@/shared/ui/button/Button';
+import { Sidebar } from '@/widgets/sidebar/ui/Sidebar';
 
 export default function ChatPage() {
   return (
-    <main className="flex justify-center items-center gap-10 container">
-      <div className="flex flex-col h-dvh w-34 pt-8 pb-10 bg-chat-sidebar rounded-3xl items-center justify-between">
-        <div className="flex flex-col gap-14">
-          <Button variant="sidebar">
-            <Home aria-label="Home" />
-          </Button>
-
-          <Button variant="sidebar">
-            <MessageCircleMore aria-label="Messages" />
-          </Button>
-
-          <Button variant="sidebar">
-            <Bell aria-label="Notifications" />
-          </Button>
-
-          <Button variant="sidebar">
-            <Settings aria-label="Settings" />
-          </Button>
-        </div>
-
-        <Button variant="sidebar">
-          <LogOut aria-label="Logout" />
-        </Button>
-      </div>
+    <main className="flex grow h-dvh self-start gap-10 p-10 w-full">
+      <Sidebar />
       <SearchInput />
-      <div className="flex flex-col w-full justify-center items-center gap-10">
+      <div className="flex flex-col h-full flex-1 justify-between items-center gap-10">
         <ChatContent />
         <MessageInput />
       </div>

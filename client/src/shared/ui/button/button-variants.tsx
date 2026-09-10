@@ -7,7 +7,7 @@ export const buttonVariants = cva(
       variant: {
         sidebar: [
           'text-chat-icon-sidebar hover:text-chat-icon-sidebar/80',
-          'size-8 md:size-11 lg:size-14',
+          'size-6 md:size-8 lg:size-10',
         ],
         action: [
           'text-chat-icon-action hover:text-chat-icon-action/80',

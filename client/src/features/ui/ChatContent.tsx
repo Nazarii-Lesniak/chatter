@@ -13,7 +13,7 @@ export function ChatContent() {
   };
 
   return (
-    <div className="flex flex-col w-full items-start justify-center gap-10 max-w-2xl">
+    <div className="flex flex-col w-full items-stretch justify-center gap-10 max-w-full">
       <User user={userData}>
         <User.Avatar />
         <div className="flex flex-col">
