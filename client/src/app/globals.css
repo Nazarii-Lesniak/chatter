@@ -2,7 +2,7 @@
 
 @theme inline {
   --color-chat-background: #eff6fc;
-  --color-chat-sidebar: #6e00ff;
+  --color-chat-purple: #6e00ff;
   --color-white: #fff;
   --color-grey: #7c7c7c;
 
@@ -12,8 +12,14 @@
   --shadow-input-glow: 0 4px 5px 2px rgb(121 197 239 / 38%);
   --shadow-input-glow-focus: 0 4px 6px 3px rgb(121 197 239 / 70%);
 
+  --color-chat-sidebar: var(--color-chat-purple);
+
   --color-chat-text-muted: var(--color-grey);
+  --color-chat-text-white: var(--color-white);
   --color-chat-text-main: #303030;
+
+  --color-chat-message-bubble-own: var(--color-chat-sidebar);
+  --color-chat-message-bubble-companion: #e7e7e7;
 
   --color-chat-icon-sidebar: var(--color-white);
   --color-chat-icon-action: #9747ff;

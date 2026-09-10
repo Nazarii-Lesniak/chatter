@@ -1,6 +1,7 @@
 import { Bell, Home, LogOut, MessageCircleMore, Settings } from 'lucide-react';
 import SearchInput from '@/features/search-by-name/ui/SearchInput';
 import MessageInput from '@/features/send-message/MessageInput';
+import { ChatContent } from '@/features/ui/ChatContent';
 import { Button } from '@/shared/ui/button/Button';
 
 export default function ChatPage() {
@@ -32,6 +33,7 @@ export default function ChatPage() {
       <div className="flex flex-col w-full justify-center items-center gap-10">
         <SearchInput />
         <MessageInput />
+        <ChatContent />
       </div>
     </main>
   );
