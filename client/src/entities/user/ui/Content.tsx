@@ -1,21 +1,16 @@
 'use client';
 
-import type React from 'react';
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
-import { type IUser, UserContext } from './UserContext';
-
-interface IUserContent extends ComponentProps<'div'> {
-  user: IUser;
-  children: React.ReactNode;
-}
+import type { UserType } from '../model/types';
+import { UserContext } from './UserContext';
 
 export function UserContent({
   className,
   user,
   children,
   ...props
-}: IUserContent) {
+}: { user: UserType } & ComponentProps<'div'>) {
   return (
     <UserContext value={{ user }}>
       <div className={cn('flex gap-4 items-center', className)} {...props}>
