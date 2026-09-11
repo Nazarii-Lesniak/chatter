@@ -2,14 +2,12 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
 import { useUserContext } from './UserContext';
 
-export function LastSeen({
-  children,
+export function CreatedAt({
   className,
+  children,
   ...props
 }: ComponentProps<'time'>) {
   const { user } = useUserContext();
-
-  const isOnline = user.status === 'online';
 
   return (
     <time
@@ -19,7 +17,7 @@ export function LastSeen({
       )}
       {...props}
     >
-      {!isOnline ? `${user.status}${user.lastSeen}` : `${user.status}`}
+      {user.createdAt}
     </time>
   );
 }

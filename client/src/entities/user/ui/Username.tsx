@@ -1,12 +1,12 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
 import { useUserContext } from './UserContext';
 
-interface IUsername extends ComponentProps<'span'> {
-  children?: ReactNode;
-}
-
-export function Username({ children, className, ...props }: IUsername) {
+export function Username({
+  children,
+  className,
+  ...props
+}: ComponentProps<'span'>) {
   const { user } = useUserContext();
 
   return (

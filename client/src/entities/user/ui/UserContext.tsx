@@ -1,28 +1,15 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import type { UserType } from '../model/types';
 
-type TUserStatus = 'online' | 'offline';
-
-export interface IUser {
-  id: string;
-  username: string;
-  avatarUrl?: string;
-  status: TUserStatus;
-  lastSeen?: string;
-}
-
-interface IUserContextType {
-  user: IUser;
-}
-
-export const UserContext = createContext<IUserContextType | null>(null);
+export const UserContext = createContext<{ user: UserType } | null>(null);
 
 export function useUserContext() {
   const context = useContext(UserContext);
 
   if (!context) {
-    throw new Error('User subcomponents must be used within <User>');
+    throw new Error('User subcomponents must be used within <UserContext>');
   }
 
   return context;

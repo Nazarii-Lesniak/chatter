@@ -1,25 +1,38 @@
 'use client';
 
 import { Message } from '@/entities/message/ui/message';
+import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
-import type { IUser } from '@/entities/user/ui/UserContext';
 
 export function ChatContent() {
-  const userData: IUser = {
+  const userData: UserType = {
     id: '1',
     username: 'John Doe',
-    status: 'online' as const,
+    status: 'offline' as const,
     lastSeen: ' - Last seen, 2.02pm',
+
+    createdAt: 'Today, 9.52pm',
   };
 
   return (
     <div className="flex flex-col w-full items-stretch justify-center gap-10 max-w-full">
       <User user={userData}>
         <User.Avatar />
-        <div className="flex flex-col">
+        <User.Info>
           <User.Username />
           <User.LastSeen />
-        </div>
+        </User.Info>
+      </User>
+      <User user={userData}>
+        <User.Avatar />
+        <User.Info>
+          <User.Username />
+          <User.LastSeen />
+        </User.Info>
+        <User.Meta>
+          <User.CreatedAt />
+          <User.Badge />
+        </User.Meta>
       </User>
       <Message variant="companion" className="flex self-start">
         <Message.Bubble>Hy there!</Message.Bubble>

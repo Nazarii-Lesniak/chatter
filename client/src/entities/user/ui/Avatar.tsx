@@ -1,13 +1,13 @@
 import Image from 'next/image';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
 import { useUserContext } from './UserContext';
 
-interface IAvatar extends ComponentProps<'div'> {
-  children?: ReactNode;
-}
-
-export function Avatar({ children, className, ...props }: IAvatar) {
+export function Avatar({
+  children,
+  className,
+  ...props
+}: ComponentProps<'div'>) {
   const { user } = useUserContext();
 
   return (
@@ -22,7 +22,9 @@ export function Avatar({ children, className, ...props }: IAvatar) {
         <Image
           src={user.avatarUrl}
           alt={user.username}
-          className="w-full h-full rounded-full object-cover text-base"
+          fill
+          sizes="76px"
+          className="object-cover"
         />
       ) : (
         children || user.username.charAt(0).toUpperCase()
