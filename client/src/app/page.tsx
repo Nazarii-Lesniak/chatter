@@ -1,17 +1,13 @@
-import SearchInput from '@/features/search-by-name/ui/SearchInput';
-import MessageInput from '@/features/send-message/MessageInput';
-import { ChatContent } from '@/features/ui/ChatContent';
+import { ChatList } from '@/widgets/chat-list/ChatList';
+import { ChatWindow } from '@/widgets/chat-window/ui/ChatWindow';
 import { Sidebar } from '@/widgets/sidebar/ui/Sidebar';
 
 export default function ChatPage() {
   return (
     <main className="flex grow h-dvh self-start gap-10 p-10 w-full">
       <Sidebar />
-      <SearchInput />
-      <div className="flex flex-col h-full flex-1 justify-between items-center gap-10">
-        <ChatContent />
-        <MessageInput />
-      </div>
+      <ChatList />
+      <ChatWindow />
     </main>
   );
 }
