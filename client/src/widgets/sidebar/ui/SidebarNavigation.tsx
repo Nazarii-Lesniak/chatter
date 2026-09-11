@@ -11,14 +11,16 @@ const NAV_ITEMS = [
 
 export function SidebarNavigation() {
   return (
-    <div className="flex flex-col gap-10">
+    <ul className="flex flex-col gap-10">
           {NAV_ITEMS.map(({ icon: Icon, label }) => {
             return (
-              <Button key={label} variant="sidebar">
-                <Icon aria-label={label} />
-              </Button>
+              <li key={label} >
+                <Button variant="sidebar">
+                  <Icon aria-label={label} />
+                </Button>
+              </li>
             )
           })}
-        </div>
+        </ul>
   )
 }
