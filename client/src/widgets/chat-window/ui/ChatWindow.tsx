@@ -8,7 +8,7 @@ export function ChatWindow() {
   return (
     <div className="flex flex-col w-full h-full bg-white p-9 items-stretch justify-between gap-10 max-w-full rounded-3xl shadow-input-glow">
       <ChatHeader />
-      
+
       <Message variant="companion" className="flex self-start">
         <Message.Bubble>Hy there!</Message.Bubble>
         <Message.Bubble>How are you?</Message.Bubble>

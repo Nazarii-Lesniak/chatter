@@ -1,6 +1,6 @@
+import { SidebarLogout } from './SidebarLogout';
 import { SidebarNavigation } from './SidebarNavigation';
 import { SidebarProfile } from './SidebarProfile';
-import { SidebarLogout } from './SidebarLogout';
 
 export function Sidebar() {
   return (
