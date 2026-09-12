@@ -1,6 +1,6 @@
 'use client';
 
-import { UserType } from '@/entities/user/model/types';
+import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 
@@ -16,7 +16,7 @@ export function ChatHeader() {
 
   return (
     <div className="flex justify-between w-full">
-      <User user={userData}>
+      <User user={userData} variant="chatWindow">
         <User.Avatar />
         <User.Info>
           <User.Username />
