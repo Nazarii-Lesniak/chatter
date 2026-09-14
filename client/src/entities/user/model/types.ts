@@ -1,4 +1,5 @@
 export type UserStatus = 'online' | 'offline';
+export type UserVariant = 'chatWindow' | 'chatList';
 
 export interface UserType {
   id: string;
@@ -7,4 +8,9 @@ export interface UserType {
   status: UserStatus;
   lastSeen?: string;
   createdAt: string;
+}
+
+export interface UserContextProps {
+  user: UserType;
+  variant: UserVariant;
 }

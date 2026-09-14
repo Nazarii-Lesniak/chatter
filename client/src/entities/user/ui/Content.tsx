@@ -2,17 +2,18 @@
 
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
-import type { UserType } from '../model/types';
+import type { UserContextProps } from '../model/types';
 import { UserContext } from './UserContext';
 
 export function UserContent({
   className,
   user,
+  variant,
   children,
   ...props
-}: { user: UserType } & ComponentProps<'div'>) {
+}: UserContextProps & ComponentProps<'div'>) {
   return (
-    <UserContext value={{ user }}>
+    <UserContext value={{ user, variant }}>
       <div className={cn('flex gap-4 items-center', className)} {...props}>
         {children}
       </div>

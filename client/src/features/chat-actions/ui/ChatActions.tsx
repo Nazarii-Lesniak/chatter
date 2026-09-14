@@ -9,5 +9,5 @@ export function ChatActions() {
       <VideoCallButton />
       <ChatMenuButton />
     </div>
-  )
+  );
 }
