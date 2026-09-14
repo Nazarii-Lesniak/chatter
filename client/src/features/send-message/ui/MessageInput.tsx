@@ -2,7 +2,7 @@ import { CameraIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
 import { Button } from '@/shared/ui/button/Button';
 import * as Input from '@/shared/ui/input/Input';
 
-export default function MessageInput() {
+export function MessageInput() {
   return (
     <Input.Root variant="message">
       <Input.Icon>
