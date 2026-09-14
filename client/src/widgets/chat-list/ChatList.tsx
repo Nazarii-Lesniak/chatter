@@ -3,7 +3,7 @@ import { PeopleList } from '../people-list/PeopleList';
 
 export function ChatList() {
   return (
-    <div className="flex flex-col w-full gap-8">
+    <div className="hidden md:hidden lg:flex lg:flex-col lg:w-80 xl:w-96 lg:gap-5 lg:shrink-0">
       <SearchInput />
       <PeopleList />
     </div>

@@ -4,7 +4,7 @@ import { Sidebar } from '@/widgets/sidebar/ui/Sidebar';
 
 export default function ChatPage() {
   return (
-    <main className="flex grow h-dvh self-start gap-10 p-10 w-full">
+    <main className="grow h-dvh w-full flex p-2 gap-10 md:p-4 md:gap-4 lg:p-6 lg:gap-6 self-start">
       <Sidebar />
       <ChatList />
       <ChatWindow />

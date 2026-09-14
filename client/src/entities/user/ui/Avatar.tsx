@@ -5,19 +5,17 @@ import { cn } from '@/shared/lib/class-merge';
 import { useUserContext } from './UserContext';
 
 const avatarVariants = cva(
-  'flex self-center items-center justify-center rounded-full bg-chat-icon-action/60 shrink-0',
+  'flex self-center items-center justify-center rounded-full bg-chat-icon-action/60 shrink-0 relative overflow-hidden rounded-full',
   {
     variants: {
       variant: {
         chatWindow: [
-          'w-13 md:w-15 lg:w-19',
-          'h-13 md:h-15 lg:h-19',
-          'text-xl md:text-2xl lg:text-3xl',
+          'size-10 md:size-11 lg:size-13',
+          'text-sm md:text-base lg:text-lg',
         ],
         chatList: [
-          'w-9 md:w-11 lg:w-13',
-          'h-9 md:h-11 lg:h-13',
-          'text-md md:text-lg lg:text-xl',
+          'size-8 md:size-9 lg:size-11',
+          'text-xs md:text-xs lg:text-sm',
         ],
       },
     },

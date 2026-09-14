@@ -6,8 +6,8 @@ import { useUserContext } from './UserContext';
 const lastSeenVariants = cva('text-chat-text-main font-light tracking-wide', {
   variants: {
     variant: {
-      chatWindow: ['text-md md:text-lg lg:text-xl'],
-      chatList: ['text-sm md:text-md lg:text-lg'],
+      chatWindow: ['text-xs md:text-xs lg:text-sm'],
+      chatList: ['text-xs md:text-xs lg:text-xs'],
     },
   },
 });
