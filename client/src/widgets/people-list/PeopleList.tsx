@@ -13,8 +13,10 @@ export function PeopleList() {
   };
 
   return (
-    <div className="flex flex-col gap-6 py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 lg:py-6 lg:pr-8 lg:pl-5 bg-white shadow-input-glow rounded-3xl">
-      <h2 className="text-md md:text-lg lg:text-xl font-semibold">People</h2>
+    <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 lg:flex lg:flex-col lg:gap-4 lg:p-4 lg:rounded-3xl   bg-white shadow-input-glow ">
+      <h2 className="text-base md:text-lg lg:text-lg lg:font-semibold">
+        People
+      </h2>
       <User user={userData} variant="chatList">
         <User.Avatar />
         <User.Info>

@@ -15,7 +15,7 @@ export function ChatHeader() {
   };
 
   return (
-    <div className="flex justify-between w-full">
+    <div className="flex justify-between w-full pb-2 md:pb-3 lg:pb-4">
       <User user={userData} variant="chatWindow">
         <User.Avatar />
         <User.Info>

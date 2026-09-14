@@ -4,7 +4,7 @@ import { VideoCallButton } from '@/features/video-call-user/ui/VideoCallButton';
 
 export function ChatActions() {
   return (
-    <div className="flex items-center gap-8">
+    <div className="flex items-center gap-2 md:gap-4 lg:gap-5">
       <CallButton />
       <VideoCallButton />
       <ChatMenuButton />

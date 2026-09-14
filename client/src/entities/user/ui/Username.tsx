@@ -3,17 +3,14 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
 import { useUserContext } from './UserContext';
 
-const usernameVariants = cva(
-  'text-chat-text-main font-semibold tracking-wide',
-  {
-    variants: {
-      variant: {
-        chatWindow: ['text-xl md:text-2xl lg:text-3xl'],
-        chatList: ['text-md md:text-lg lg:text-xl'],
-      },
+const usernameVariants = cva('text-chat-text-main tracking-wide', {
+  variants: {
+    variant: {
+      chatWindow: ['text-sm md:text-base lg:text-lg font-semibold'],
+      chatList: ['text-xs md:text-sm lg:text-sm lg:font-semibold'],
     },
   },
-);
+});
 
 export function Username({
   children,

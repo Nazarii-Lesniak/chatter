@@ -9,7 +9,7 @@ export function Timestamp({ children, className, ...props }: ITimestamp) {
   return (
     <span
       className={cn(
-        'text-xl text-chat-text-muted font-light tracking-wide ml-4',
+        'text-xs md:text-xs lg:text-sm text-chat-text-muted font-light tracking-wide ml-4',
         className,
       )}
       {...props}
