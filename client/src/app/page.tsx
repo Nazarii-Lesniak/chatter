@@ -1,6 +1,6 @@
-import { ChatList } from '@/widgets/chat-list/ChatList';
-import { ChatWindow } from '@/widgets/chat-window/ui/ChatWindow';
-import { Sidebar } from '@/widgets/sidebar/ui/Sidebar';
+import { ChatList } from '@/widgets/chat-list';
+import { ChatWindow } from '@/widgets/chat-window';
+import { Sidebar } from '@/widgets/sidebar';
 
 export default function ChatPage() {
   return (
