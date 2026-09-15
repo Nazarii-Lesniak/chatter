@@ -1,18 +1,13 @@
 'use client';
 
-import type { UserType } from '@/entities/user/model/types';
+import { useChatStore } from '@/entities/chat';
 import { User } from '@/entities/user/ui';
 import { SearchInput } from '@/features/search-by-name';
 
-const userData: UserType = {
-  id: '1',
-  username: 'John Doe',
-  status: 'offline' as const,
-  lastSeen: ' - Last seen, 2.02pm',
-  createdAt: 'Today, 9.52pm',
-};
-
 export function ChatList() {
+  const chats = useChatStore((state) => state.chats);
+  const activeChatId = useChatStore((state) => state.activeChatId);
+  const setActiveChat = useChatStore((state) => state.setActiveChat);
   return (
     <div className="hidden md:hidden lg:flex lg:flex-col lg:w-80 xl:w-96 lg:gap-5 lg:shrink-0">
       <SearchInput />
@@ -20,17 +15,30 @@ export function ChatList() {
         <h2 className="text-base md:text-lg lg:text-lg lg:font-semibold">
           People
         </h2>
-        <User user={userData} variant="chatList">
-          <User.Avatar />
-          <User.Info>
-            <User.Username />
-            <User.LastSeen />
-          </User.Info>
-          <User.Meta>
-            <User.CreatedAt />
-            <User.Badge />
-          </User.Meta>
-        </User>
+        {chats.map((chat) => (
+          <button
+            type="button"
+            key={chat.id}
+            onClick={() => setActiveChat(chat.id)}
+            className={`p-2 rounded-2xl cursor-pointer transition-colors ${
+              chat.id === activeChatId
+                ? 'bg-chat-background'
+                : 'hover:bg-chat-background/60'
+            }`}
+          >
+            <User user={chat} variant="chatList">
+              <User.Avatar />
+              <User.Info>
+                <User.Username />
+                <User.LastSeen />
+              </User.Info>
+              <User.Meta>
+                <User.CreatedAt />
+                <User.Badge />
+              </User.Meta>
+            </User>
+          </button>
+        ))}
       </div>
     </div>
   );
