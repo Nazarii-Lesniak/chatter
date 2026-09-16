@@ -6,22 +6,15 @@ import * as Input from '@/shared/ui/input/Input';
 
 export function MessageInput() {
   const [text, setText] = useState('');
-  const addMessage = useChatStore((state) => state.addMessage);
+  const { sendMessage } = useChatStore();
   const activeChatId = useChatStore((state) => state.activeChatId);
 
   const handleSend = () => {
-    if (!text.trim() || !activeChatId) return;
-    addMessage(activeChatId, {
-      id: crypto.randomUUID(),
-      text: text.trim(),
-      senderId: 'me',
-      timestamp:
-        'Today, ' +
-        new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-    });
+    if (!text.trim() || !activeChatId) {
+      return;
+    }
+
+    sendMessage(text.trim());
     setText('');
   };
 

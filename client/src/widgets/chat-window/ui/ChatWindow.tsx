@@ -15,6 +15,8 @@ export function ChatWindow() {
     state.chats.find((c) => c.id === activeChatId),
   );
 
+  const currentUserId = useChatStore((state) => state.currentUserId);
+
   const messages = useChatStore((state) =>
     activeChatId && state.messages[activeChatId]
       ? state.messages[activeChatId]
@@ -38,7 +40,7 @@ export function ChatWindow() {
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 scrollbar-thin">
         {messages.map((message) => {
-          const isOwn = message.senderId === 'me';
+          const isOwn = message.senderId === currentUserId;
 
           return (
             <Message

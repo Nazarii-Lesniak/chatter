@@ -1,5 +1,8 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import type { UserType } from '@/entities/user/model/types';
+import { socketClient } from '@/shared/api/socket';
+import type { SocketEvent } from '../../../../../server/src/types';
 
 export interface Message {
   id: string;
@@ -22,72 +25,91 @@ interface ChatState {
   activeChatId: string | null;
   messages: Record<string, Message[]>;
   isConnected: boolean;
+  currentUserId: string | null;
 
   setActiveChat: (chatId: string) => void;
   addMessage: (chatId: string, message: Message) => void;
   setConnectionStatus: (status: boolean) => void;
+
+  initSocket: (userId: string) => void;
+  sendMessage: (text: string) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
-  chats: [
-    {
-      id: '1',
-      username: 'Anil',
-      avatarUrl: '',
-      lastMessage: 'April fool’s day',
-      lastMessageTime: 'Today, 9.52pm',
-      createdAt: 'Today, 9.52pm',
-      unreadCount: 0,
-      status: 'online',
-    },
-    {
-      id: '2',
-      username: 'Chuutiya',
-      avatarUrl: '',
-      lastMessage: 'Baag',
-      lastMessageTime: 'Today, 12.11pm',
-      createdAt: 'Today, 9.52pm',
-      lastSeen: ' - Last seen, 2.02pm',
-      unreadCount: 1,
-      status: 'offline',
-    },
-  ],
-  activeChatId: '1',
-  messages: {
-    '1': [
-      {
-        id: 'm2',
-        text: 'How are you?',
-        senderId: '1',
-        timestamp: 'Today, 8.30pm',
-      },
-      { id: 'm3', text: 'Hello!', senderId: 'me', timestamp: 'Today, 8.33pm' },
-      {
-        id: 'm1',
-        text: 'Hey There!',
-        senderId: '1',
-        timestamp: 'Today, 8.30pm',
-      },
-      {
-        id: 'm4',
-        text: 'I am fine and how are you?',
-        senderId: 'me',
-        timestamp: 'Today, 8.34pm',
-      },
-    ],
-    '2': [],
-  },
-  isConnected: false,
+let socketUnsubscribe: (() => void) | null = null;
 
-  setActiveChat: (chatId) => set({ activeChatId: chatId }),
-
-  addMessage: (chatId, newMessage) =>
-    set((state) => ({
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set, get) => ({
+      chats: [],
+      activeChatId: '',
       messages: {
-        ...state.messages,
-        [chatId]: [...(state.messages[chatId] || []), newMessage],
+        '': [],
       },
-    })),
+      isConnected: false,
+      currentUserId: null,
 
-  setConnectionStatus: (status) => set({ isConnected: status }),
-}));
+      setActiveChat: (chatId) => set({ activeChatId: chatId }),
+
+      addMessage: (chatId, newMessage) =>
+        set((state) => ({
+          messages: {
+            ...state.messages,
+            [chatId]: [...(state.messages[chatId] || []), newMessage],
+          },
+        })),
+
+      setConnectionStatus: (status) => set({ isConnected: status }),
+
+      initSocket: (userId) => {
+        set({ currentUserId: userId });
+
+        socketClient.connect(userId);
+
+        if (socketUnsubscribe) {
+          socketUnsubscribe();
+        }
+
+        socketUnsubscribe = socketClient.onMessage((event: SocketEvent) => {
+          switch (event.type) {
+            case 'NEW_MESSAGE': {
+              const { chatId, id, text, senderId, timestamp } = event.payload;
+              get().addMessage(chatId, { id, text, senderId, timestamp });
+              break;
+            }
+            case 'USER_STATUS': {
+              const { userId, status } = event.payload;
+              set((state) => ({
+                chats: state.chats.map((chat) =>
+                  chat.id === userId ? { ...chat, status } : chat,
+                ),
+              }));
+              break;
+            }
+          }
+        });
+      },
+
+      sendMessage: (text) => {
+        const { activeChatId, currentUserId } = get();
+        if (!activeChatId || !currentUserId) return;
+        socketClient.send({
+          type: 'SEND_MESSAGE',
+          payload: {
+            chatId: activeChatId,
+            text,
+            senderId: currentUserId,
+          },
+        });
+      },
+    }),
+    {
+      name: 'chatter-store',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        chats: state.chats,
+        messages: state.messages,
+        activeChatId: state.activeChatId,
+      }),
+    },
+  ),
+);
