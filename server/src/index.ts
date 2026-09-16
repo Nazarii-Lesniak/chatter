@@ -1,37 +1,123 @@
-import { createServer } from 'node:http';
-import express from 'express';
-import { WebSocketServer } from 'ws';
+import { randomUUID } from 'node:crypto';
+import { WebSocket, WebSocketServer } from 'ws';
+import type { SocketEvent } from './types';
 
-const app = express();
-const port = process.env.PORT || 3005;
+const wss = new WebSocketServer({ port: 8080 });
+const activeConnections = new Map<string, WebSocket>();
 
-app.get('/api/ping', (_request, response) => {
-  response.json({ status: 'ok', message: 'Server is running' });
-});
+const chatParticipants: Record<string, string[]> = {
+  '': ['', ''],
+};
 
-const server = createServer(app);
-const wss = new WebSocketServer({ server });
+wss.on('connection', (ws: WebSocket) => {
+  let currentUserId: string | null = null;
 
-wss.on('connection', (ws) => {
-  console.log('🟢 Client connected');
+  ws.on('message', (rawData: string) => {
+    try {
+      const event = JSON.parse(rawData.toString()) as SocketEvent;
 
-  ws.on('message', (data) => {
-    const message = data.toString();
-    console.log(`📩 Received message: "${message}"`);
+      switch (event.type) {
+        case 'CLIENT_CONNECT': {
+          const { userId } = event.payload;
 
-    if (message === 'ping') {
-      ws.send('pong');
-    } else {
-      ws.send(`Echo: ${message}`);
+          currentUserId = userId;
+
+          activeConnections.set(userId, ws);
+          console.log(`User ${userId} is connected to socket.`);
+          break;
+        }
+
+        case 'SEND_MESSAGE': {
+          if (!currentUserId) {
+            ws.send(JSON.stringify({ type: 'ERROR', message: 'Unauthorized' }));
+
+            return;
+          }
+
+          const { chatId, text, senderId } = event.payload;
+
+          const newMessageEvent: SocketEvent = {
+            type: 'NEW_MESSAGE',
+            payload: {
+              id: randomUUID(),
+              chatId,
+              text,
+              senderId,
+              timestamp:
+                'Today, ' +
+                new Date().toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+            },
+          };
+
+          const serializedMessage = JSON.stringify(newMessageEvent);
+
+          const participants = chatParticipants[chatId] || [];
+
+          participants.forEach((recipentId) => {
+            if (recipentId !== senderId) {
+              const recipientSocket = activeConnections.get(recipentId);
+
+              if (
+                recipentId &&
+                recipientSocket?.readyState === WebSocket.OPEN
+              ) {
+                recipientSocket.send(serializedMessage);
+              }
+            }
+          });
+
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(serializedMessage);
+          }
+
+          console.log(
+            `Message from ${event.payload.senderId}: ${event.payload.text}`,
+          );
+          break;
+        }
+
+        case 'USER_STATUS': {
+          if (!currentUserId) {
+            return;
+          }
+
+          console.log(
+            `Статус ${event.payload.userId}: ${event.payload.status}`,
+          );
+          break;
+        }
+        case 'NEW_MESSAGE': {
+          break;
+        }
+      }
+    } catch (error) {
+      console.error('Error procced message:', error);
     }
   });
 
   ws.on('close', () => {
-    console.log('🔴 Client disconnected');
-  });
-});
+    if (currentUserId) {
+      activeConnections.delete(currentUserId);
+      console.log(`User ${currentUserId} disconnected.`);
 
-server.listen(port, () => {
-  console.log(`🚀 Server running on port http://localhost:${port}`);
-  console.log(`🔌 WebSocket ready on ws://localhost:${port}`);
+      const statusEvent: SocketEvent = {
+        type: 'USER_STATUS',
+        payload: {
+          userId: currentUserId,
+          status: 'offline',
+        },
+      };
+
+      const serializedStatus = JSON.stringify(statusEvent);
+
+      activeConnections.forEach((recipientSocket) => {
+        if (recipientSocket.readyState === WebSocket.OPEN) {
+          recipientSocket.send(serializedStatus);
+        }
+      });
+    }
+  });
 });
