@@ -1,10 +1,18 @@
-import { UserRound } from 'lucide-react';
-import { Button } from '@/shared/ui/button/Button';
+'use client';
+
+import { useAuthStore } from '@/entities/user';
 
 export function SidebarProfile() {
+  const username = useAuthStore((state) => state.username);
+
+  const initial = username ? username.charAt(0).toUpperCase() : 'N/A';
+
   return (
-    <Button variant="sidebar">
-      <UserRound aria-label="Username" />
-    </Button>
+    <div
+      title={username ?? 'Profile'}
+      className="size-10 rounded-full bg-white/20 flex items-center justify-center text-chat-text-white font-semibold text-sm shrink-0 cursor-default"
+    >
+      {initial}
+    </div>
   );
 }

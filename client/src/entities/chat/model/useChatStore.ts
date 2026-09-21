@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { UserType } from '@/entities/user/model/types';
 import { socketClient } from '@/shared/api/socket';
-import type { SocketEvent } from '../../../../../server/src/types';
+import type { SocketEvent } from '@/shared/types/socket';
 
 export interface Message {
   id: string;
@@ -11,13 +11,14 @@ export interface Message {
   timestamp: string;
 }
 
-interface Chat extends UserType {
+export interface Chat extends UserType {
   id: string;
-  avatarUrl: string;
-  lastMessage: string;
-  lastMessageTime: string;
   unreadCount: number;
-  status: 'online' | 'offline';
+}
+
+export interface SearchUser {
+  userId: string;
+  username: string;
 }
 
 interface ChatState {
@@ -26,10 +27,15 @@ interface ChatState {
   messages: Record<string, Message[]>;
   isConnected: boolean;
   currentUserId: string | null;
+  searchResults: SearchUser[];
 
   setActiveChat: (chatId: string) => void;
   addMessage: (chatId: string, message: Message) => void;
   setConnectionStatus: (status: boolean) => void;
+  setSearchResults: (results: SearchUser[]) => void;
+  clearSearchResults: () => void;
+
+  openChat: (targetUser: SearchUser) => void;
 
   initSocket: (userId: string) => void;
   sendMessage: (text: string) => void;
@@ -37,28 +43,91 @@ interface ChatState {
 
 let socketUnsubscribe: (() => void) | null = null;
 
+export function buildChatId(userA: string, userB: string) {
+  return [userA, userB].sort().join('_');
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
       chats: [],
-      activeChatId: '',
-      messages: {
-        '': [],
-      },
+      activeChatId: null,
+      messages: {},
       isConnected: false,
       currentUserId: null,
+      searchResults: [],
 
-      setActiveChat: (chatId) => set({ activeChatId: chatId }),
-
-      addMessage: (chatId, newMessage) =>
+      setActiveChat: (chatId) =>
         set((state) => ({
-          messages: {
-            ...state.messages,
-            [chatId]: [...(state.messages[chatId] || []), newMessage],
-          },
+          activeChatId: chatId,
+          chats: state.chats.map((chat) =>
+            chat.id === chatId ? { ...chat, unreadCount: 0 } : chat,
+          ),
         })),
 
+      addMessage: (chatId, newMessage) =>
+        set((state) => {
+          const isActive = state.activeChatId === chatId;
+
+          return {
+            messages: {
+              ...state.messages,
+              [chatId]: [...(state.messages[chatId] ?? []), newMessage],
+            },
+            chats: state.chats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    lastSeen: newMessage.timestamp,
+                    unreadCount: isActive ? 0 : chat.unreadCount + 1,
+                  }
+                : chat,
+            ),
+          };
+        }),
+
       setConnectionStatus: (status) => set({ isConnected: status }),
+
+      setSearchResults: (results) => set({ searchResults: results }),
+
+      clearSearchResults: () => set({ searchResults: [] }),
+
+      openChat: (targetUser) => {
+        const { currentUserId, chats } = get();
+
+        if (!currentUserId) {
+          return;
+        }
+
+        const chatId = buildChatId(currentUserId, targetUser.userId);
+
+        const alreadyExists = chats.some((chat) => chat.id === chatId);
+
+        if (!alreadyExists) {
+          const newChat: Chat = {
+            id: chatId,
+            username: targetUser.username,
+            status: 'offline',
+            createdAt: '',
+            unreadCount: 0,
+          };
+
+          set((state) => ({ chats: [...state.chats, newChat] }));
+        }
+
+        socketClient.send({
+          type: 'JOIN_CHAT',
+          payload: { chatId, userId: currentUserId },
+        });
+
+        socketClient.send({
+          type: 'JOIN_CHAT',
+          payload: { chatId, userId: targetUser.userId },
+        });
+
+        set({ activeChatId: chatId });
+        get().clearSearchResults();
+      },
 
       initSocket: (userId) => {
         set({ currentUserId: userId });
@@ -73,25 +142,43 @@ export const useChatStore = create<ChatState>()(
           switch (event.type) {
             case 'NEW_MESSAGE': {
               const { chatId, id, text, senderId, timestamp } = event.payload;
+
               get().addMessage(chatId, { id, text, senderId, timestamp });
               break;
             }
+
             case 'USER_STATUS': {
-              const { userId, status } = event.payload;
+              const { userId: uid, status } = event.payload;
+
               set((state) => ({
-                chats: state.chats.map((chat) =>
-                  chat.id === userId ? { ...chat, status } : chat,
-                ),
+                chats: state.chats.map((chat) => {
+                  const chatUserId = chat.id
+                    .split('_')
+                    .find((id) => id !== state.currentUserId);
+                  return chatUserId === uid ? { ...chat, status } : chat;
+                }),
               }));
               break;
             }
+
+            case 'SEARCH_RESULT': {
+              get().setSearchResults(event.payload.users);
+              break;
+            }
+
+            default:
+              break;
           }
         });
       },
 
       sendMessage: (text) => {
         const { activeChatId, currentUserId } = get();
-        if (!activeChatId || !currentUserId) return;
+
+        if (!activeChatId || !currentUserId) {
+          return;
+        }
+
         socketClient.send({
           type: 'SEND_MESSAGE',
           payload: {
@@ -102,6 +189,7 @@ export const useChatStore = create<ChatState>()(
         });
       },
     }),
+
     {
       name: 'chatter-store',
       storage: createJSONStorage(() => localStorage),
