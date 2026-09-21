@@ -3,7 +3,7 @@
 import type { Message as MessageType } from '@/entities/chat';
 import { useChatStore } from '@/entities/chat';
 import { Message } from '@/entities/message';
-import { User } from '@/entities/user';
+import { User, useAuthStore } from '@/entities/user';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 import { MessageInput } from '@/features/send-message';
 
@@ -15,7 +15,7 @@ export function ChatWindow() {
     state.chats.find((c) => c.id === activeChatId),
   );
 
-  const currentUserId = useChatStore((state) => state.currentUserId);
+  const currentUserId = useAuthStore((state) => state.userId);
 
   const messages = useChatStore((state) =>
     activeChatId && state.messages[activeChatId]

@@ -28,6 +28,7 @@ interface ChatState {
   isConnected: boolean;
   currentUserId: string | null;
   searchResults: SearchUser[];
+  reset: () => void;
 
   setActiveChat: (chatId: string) => void;
   addMessage: (chatId: string, message: Message) => void;
@@ -68,13 +69,26 @@ export const useChatStore = create<ChatState>()(
       addMessage: (chatId, newMessage) =>
         set((state) => {
           const isActive = state.activeChatId === chatId;
+          const chatExists = state.chats.some((c) => c.id === chatId);
+          let updatedChats = state.chats;
 
-          return {
-            messages: {
-              ...state.messages,
-              [chatId]: [...(state.messages[chatId] ?? []), newMessage],
-            },
-            chats: state.chats.map((chat) =>
+          if (!chatExists) {
+            const partnerId =
+              chatId.split('_').find((id) => id !== state.currentUserId) ||
+              'Companion';
+
+            const newChat: Chat = {
+              id: chatId,
+              username: partnerId,
+              status: 'online',
+              createdAt: '',
+              unreadCount: isActive ? 0 : 1,
+              lastSeen: newMessage.timestamp,
+            };
+
+            updatedChats = [newChat, ...state.chats];
+          } else {
+            updatedChats = state.chats.map((chat) =>
               chat.id === chatId
                 ? {
                     ...chat,
@@ -82,7 +96,15 @@ export const useChatStore = create<ChatState>()(
                     unreadCount: isActive ? 0 : chat.unreadCount + 1,
                   }
                 : chat,
-            ),
+            );
+          }
+
+          return {
+            messages: {
+              ...state.messages,
+              [chatId]: [...(state.messages[chatId] ?? []), newMessage],
+            },
+            chats: updatedChats,
           };
         }),
 
@@ -120,11 +142,6 @@ export const useChatStore = create<ChatState>()(
           payload: { chatId, userId: currentUserId },
         });
 
-        socketClient.send({
-          type: 'JOIN_CHAT',
-          payload: { chatId, userId: targetUser.userId },
-        });
-
         set({ activeChatId: chatId });
         get().clearSearchResults();
       },
@@ -155,6 +172,7 @@ export const useChatStore = create<ChatState>()(
                   const chatUserId = chat.id
                     .split('_')
                     .find((id) => id !== state.currentUserId);
+
                   return chatUserId === uid ? { ...chat, status } : chat;
                 }),
               }));
@@ -188,6 +206,15 @@ export const useChatStore = create<ChatState>()(
           },
         });
       },
+
+      reset: () =>
+        set({
+          chats: [],
+          activeChatId: null,
+          messages: {},
+          currentUserId: null,
+          searchResults: [],
+        }),
     }),
 
     {
@@ -196,7 +223,6 @@ export const useChatStore = create<ChatState>()(
       partialize: (state) => ({
         chats: state.chats,
         messages: state.messages,
-        activeChatId: state.activeChatId,
       }),
     },
   ),
