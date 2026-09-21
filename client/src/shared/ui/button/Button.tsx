@@ -3,7 +3,7 @@ import { renderIcon } from '@/shared/lib/render-icon';
 import { buttonVariants } from './button-variants';
 
 interface IRoot extends ComponentProps<'button'> {
-  variant: 'sidebar' | 'action' | 'addon' | 'voice' | 'search';
+  variant: 'sidebar' | 'action' | 'addon' | 'voice' | 'search' | 'auth';
   children?: React.ReactNode;
 }
 

@@ -30,6 +30,14 @@ export const buttonVariants = cva(
           'size-7 md:size-8 lg:size-9',
           'p-1 md:p-1.5 md:p-2',
         ],
+        auth: [
+          'h-11 md:h-12',
+          'rounded-3xl',
+          'bg-chat-purple hover:opacity-80 transition-opacity',
+          'text-xs md:text-sm text-white',
+          'font-semibold tracking-wide',
+          'disabled:opacity-60 disabled:cursor-not-allowed',
+        ],
       },
     },
     defaultVariants: {

@@ -25,6 +25,13 @@ export const inputVariants = cva(
           'text-chat-text-main placeholder:text-chat-text-main',
           'bg-chat-background',
         ],
+        auth: [
+          'h-11 md:h-12',
+          'px-4',
+          'text-xs md:text-sm',
+          'text-chat-text-main placeholder:text-chat-text-muted',
+          'bg-chat-background',
+        ],
       },
     },
     defaultVariants: {
