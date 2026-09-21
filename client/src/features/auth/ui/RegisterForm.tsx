@@ -70,11 +70,11 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
-      <div className="flex flex-col gap-1.5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-5 w-full">
+      <div className="flex flex-col gap-1 md:gap-1.5">
         <label
           htmlFor="register-username"
-          className="text-sm font-medium text-chat-text-main tracking-wide"
+          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
         >
           Username
         </label>
@@ -85,14 +85,14 @@ export function RegisterForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Enter your name"
-          className="h-12 px-4 rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
+          className="h-11 md:h-12 px-4 rounded-xl md:rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1 md:gap-1.5">
         <label
           htmlFor="register-password"
-          className="text-sm font-medium text-chat-text-main tracking-wide"
+          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
         >
           Password
         </label>
@@ -103,18 +103,18 @@ export function RegisterForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Create a password"
-          className="h-12 px-4 rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
+          className="h-11 md:h-12 px-4 rounded-xl md:rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
         />
       </div>
 
       {isError && (
-        <p className="text-sm text-red-500 text-center -mt-1">{isError}</p>
+        <p className="text-xs md:text-sm text-red-400 text-center -mt-1">{isError}</p>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="h-12 rounded-2xl bg-chat-purple text-white font-semibold tracking-wide text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+        className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-chat-purple text-white font-semibold tracking-wide text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
       >
         {isLoading ? 'Creating account…' : 'Create account'}
       </button>
