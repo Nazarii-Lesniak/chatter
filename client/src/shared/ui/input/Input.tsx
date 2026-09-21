@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib/class-merge';
 import { inputVariants } from './input.variants';
 
 export interface IRoot extends ComponentProps<'div'> {
-  variant: 'search' | 'message';
+  variant: 'search' | 'message' | 'auth';
   children?: React.ReactNode;
 }
 

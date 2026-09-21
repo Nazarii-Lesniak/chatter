@@ -10,12 +10,15 @@ import { Sidebar } from '@/widgets/sidebar';
 
 export default function ChatPage() {
   const router = useRouter();
-  const { userId, isAuthenticated } = useAuthStore();
+  const userId = useAuthStore((state) => state.userId);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const initSocket = useChatStore((state) => state.initSocket);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
       router.push('/login');
+
       return;
     }
 
