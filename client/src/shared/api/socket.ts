@@ -1,4 +1,4 @@
-import type { SocketEvent } from '../../../../server/src/types';
+import type { SocketEvent } from '@/shared/types/socket';
 
 type MessageCallback = (event: SocketEvent) => void;
 
@@ -7,7 +7,7 @@ class SocketClient {
   private subscribers: Set<MessageCallback> = new Set();
   private url: string = 'ws://localhost:8080';
   private userId: string | null = null;
-  private reconectTimer: NodeJS.Timeout | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isExplicitlyClose = false;
 
   public connect(userId: string, url?: string) {
@@ -25,7 +25,7 @@ class SocketClient {
     this.socket = new WebSocket(this.url);
 
     this.socket.onopen = () => {
-      console.log('[WebSocket] Is connected');
+      console.log('[WebSocket] Connected');
 
       if (this.userId) {
         this.send({
@@ -37,7 +37,7 @@ class SocketClient {
 
     this.socket.onmessage = (event: MessageEvent) => {
       try {
-        const parsedEvent = JSON.parse(event.data);
+        const parsedEvent = JSON.parse(event.data) as SocketEvent;
 
         this.subscribers.forEach((callback) => {
           callback(parsedEvent);
@@ -52,16 +52,16 @@ class SocketClient {
     };
 
     this.socket.onclose = () => {
-      console.warn('[WebSocket] Connection is lost');
+      console.warn('[WebSocket] Connection lost');
       this.socket = null;
 
       if (!this.isExplicitlyClose && this.userId) {
-        if (this.reconectTimer) {
-          clearTimeout(this.reconectTimer);
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
         }
 
-        this.reconectTimer = setTimeout(() => {
-          console.log('[WebSocket] Try reconnect...');
+        this.reconnectTimer = setTimeout(() => {
+          console.log('[WebSocket] Reconnecting...');
 
           if (this.userId) {
             this.connect(this.userId);
@@ -85,15 +85,17 @@ class SocketClient {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(event));
     } else {
-      console.warn('[WebSocket] Cannot send: socket is not ready');
+      console.warn('[WebSocket] Cannot send: socket not ready');
     }
   }
 
   public disconnect() {
     this.isExplicitlyClose = true;
+    this.userId = null;
 
-    if (this.reconectTimer) {
-      clearTimeout(this.reconectTimer);
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
 
     if (this.socket) {
