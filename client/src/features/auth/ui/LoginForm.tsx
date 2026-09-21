@@ -66,11 +66,11 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
-      <div className="flex flex-col gap-1.5">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-5 w-full">
+      <div className="flex flex-col gap-1 md:gap-1.5">
         <label
           htmlFor="login-username"
-          className="text-sm font-medium text-chat-text-main tracking-wide"
+          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
         >
           Username
         </label>
@@ -81,14 +81,14 @@ export function LoginForm() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Your username"
-          className="h-12 px-4 rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
+          className="h-11 md:h-12 px-4 rounded-xl md:rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1 md:gap-1.5">
         <label
           htmlFor="login-password"
-          className="text-sm font-medium text-chat-text-main tracking-wide"
+          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
         >
           Password
         </label>
@@ -99,18 +99,18 @@ export function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Your password"
-          className="h-12 px-4 rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
+          className="h-11 md:h-12 px-4 rounded-xl md:rounded-2xl bg-chat-background shadow-input-glow outline-hidden focus:shadow-input-glow-focus transition-shadow text-chat-text-main placeholder:text-chat-text-muted text-sm"
         />
       </div>
 
       {error && (
-        <p className="text-sm text-red-400 text-center -mt-1">{error}</p>
+        <p className="text-xs md:text-sm text-red-400 text-center -mt-1">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={isLoading}
-        className="h-12 rounded-2xl bg-chat-purple text-white font-semibold tracking-wide text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
+        className="h-11 md:h-12 rounded-xl md:rounded-2xl bg-chat-purple text-white font-semibold tracking-wide text-sm transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed"
       >
         {isLoading ? 'Signing in…' : 'Sign in'}
       </button>
