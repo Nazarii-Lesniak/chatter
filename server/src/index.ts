@@ -1,33 +1,75 @@
 import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { WebSocket, WebSocketServer } from 'ws';
 import type { SocketEvent, UserRecord } from './types';
 
 const wss = new WebSocketServer({ port: 8080 });
 
-const activeConnections = new Map<string, WebSocket>();
+const activeConnections = new Map<string, Set<WebSocket>>();
 
-const users = new Map<string, UserRecord>();
+const DATA_DIR = path.resolve(__dirname, '../data');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+function loadUsers(): Map<string, UserRecord> {
+  if (fs.existsSync(USERS_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(USERS_FILE, 'utf-8'));
+      return new Map(Object.entries(data));
+    } catch {
+      return new Map();
+    }
+  }
+  return new Map();
+}
+
+const users = loadUsers();
 const usernameIndex = new Map<string, string>();
+
+users.forEach((record) => {
+  usernameIndex.set(record.username, record.userId);
+});
+function saveUsers() {
+  const obj = Object.fromEntries(users.entries());
+  fs.writeFileSync(USERS_FILE, JSON.stringify(obj, null, 2), 'utf-8');
+}
 
 const chatParticipants = new Map<string, Set<string>>();
 
 function broadcast(event: SocketEvent, excludeUserId?: string) {
   const serialized = JSON.stringify(event);
 
-  activeConnections.forEach((ws, uid) => {
-    if (uid !== excludeUserId && ws.readyState === WebSocket.OPEN) {
-      ws.send(serialized);
+  activeConnections.forEach((sockets, uid) => {
+    if (uid !== excludeUserId) {
+      return;
     }
+
+    sockets.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(serialized);
+      }
+    });
   });
 }
 
 function _sendTo(userId: string, event: SocketEvent) {
-  const ws = activeConnections.get(userId);
+  const sockets = activeConnections.get(userId);
 
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(event));
+  if (!sockets) {
+    return;
   }
+
+  const serialized = JSON.stringify(event);
+
+  sockets.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(serialized);
+    }
+  });
 }
 
 function sendToSocket(ws: WebSocket, event: SocketEvent) {
@@ -44,6 +86,13 @@ function broadcastStatus(userId: string, status: 'online' | 'offline') {
   broadcast(statusEvent);
 }
 
+function registerConnection(userId: string, ws: WebSocket) {
+  if (!activeConnections.has(userId)) {
+    activeConnections.set(userId, new Set());
+  }
+  activeConnections.get(userId)?.add(ws);
+}
+
 wss.on('connection', (ws: WebSocket) => {
   let currentUserId: string | null = null;
 
@@ -56,7 +105,7 @@ wss.on('connection', (ws: WebSocket) => {
           const { userId } = event.payload;
 
           currentUserId = userId;
-          activeConnections.set(userId, ws);
+          registerConnection(userId, ws);
           console.log(`[WS] CLIENT_CONNECT userId=${userId}`);
           broadcastStatus(userId, 'online');
           break;
@@ -81,9 +130,10 @@ wss.on('connection', (ws: WebSocket) => {
 
           users.set(userId, record);
           usernameIndex.set(username, userId);
+          saveUsers();
 
           currentUserId = userId;
-          activeConnections.set(userId, ws);
+          registerConnection(userId, ws);
 
           sendToSocket(ws, {
             type: 'AUTH_SUCCESS',
@@ -121,7 +171,7 @@ wss.on('connection', (ws: WebSocket) => {
           }
 
           currentUserId = existingId;
-          activeConnections.set(existingId, ws);
+          registerConnection(existingId, ws);
 
           sendToSocket(ws, {
             type: 'AUTH_SUCCESS',
@@ -187,11 +237,6 @@ wss.on('connection', (ws: WebSocket) => {
 
           const { chatId, text, senderId } = event.payload;
 
-          if (!chatParticipants.has(chatId)) {
-            chatParticipants.set(chatId, new Set());
-          }
-          chatParticipants.get(chatId)?.add(senderId);
-
           const timestamp =
             'Today, ' +
             new Date().toLocaleTimeString([], {
@@ -211,20 +256,19 @@ wss.on('connection', (ws: WebSocket) => {
           };
 
           const serialized = JSON.stringify(newMessageEvent);
-          const participants =
-            chatParticipants.get(chatId) ?? new Set<string>();
+
+          const participants = chatId.split('_');
 
           participants.forEach((participantId) => {
-            const recipientWs = activeConnections.get(participantId);
-
-            if (recipientWs && recipientWs.readyState === WebSocket.OPEN) {
-              recipientWs.send(serialized);
+            const userSockets = activeConnections.get(participantId);
+            if (userSockets) {
+              userSockets.forEach((recipientWs) => {
+                if (recipientWs.readyState === WebSocket.OPEN) {
+                  recipientWs.send(serialized);
+                }
+              });
             }
           });
-
-          if (!participants.has(senderId) && ws.readyState === WebSocket.OPEN) {
-            ws.send(serialized);
-          }
 
           console.log(
             `[WS] SEND_MESSAGE chatId=${chatId} from=${senderId}: ${text}`,
@@ -251,10 +295,21 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
-    if (currentUserId) {
-      activeConnections.delete(currentUserId);
-      console.log(`[WS] Disconnected userId=${currentUserId}`);
-      broadcastStatus(currentUserId, 'offline');
+    if (!currentUserId) {
+      return;
+    }
+
+    const userSockets = activeConnections.get(currentUserId);
+
+    if (userSockets) {
+      userSockets.delete(ws);
+
+      if (userSockets.size === 0) {
+        activeConnections.delete(currentUserId);
+        console.log(`[WS] Disconnected userId=${currentUserId}`);
+
+        broadcastStatus(currentUserId, 'offline');
+      }
     }
   });
 });
