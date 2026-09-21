@@ -1,7 +1,7 @@
 'use client';
 
+import type { Message as MessageType } from '@/entities/chat';
 import { useChatStore } from '@/entities/chat';
-import type { Message as MessageType } from '@/entities/chat/model/useChatStore';
 import { Message } from '@/entities/message';
 import { User } from '@/entities/user';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
@@ -22,6 +22,10 @@ export function ChatWindow() {
       ? state.messages[activeChatId]
       : EMPTY_MESSAGES,
   );
+
+  if (!activeChatId) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow">
