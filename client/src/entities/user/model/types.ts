@@ -8,6 +8,7 @@ export interface UserType {
   status: UserStatus;
   lastSeen?: string;
   createdAt: string;
+  unreadCount?: number;
 }
 
 export interface UserContextProps {

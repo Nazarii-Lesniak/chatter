@@ -19,8 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@server-types": ["../server/src/types.ts"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
