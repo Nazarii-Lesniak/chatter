@@ -7,7 +7,6 @@ export function LoginForm() {
     <AuthForm
       mode="login"
       submitText="Sign in"
-      loadingText="Signing in…"
       usernamePlaceholder="Your username"
       passwordPlaceholder="Your password"
     />
