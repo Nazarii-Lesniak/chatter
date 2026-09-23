@@ -10,8 +10,17 @@ function getPort(value: string | undefined): number {
   return port;
 }
 
+function getRequiredEnv(value: string | undefined, name: string): string {
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+
+  return value;
+}
+
 export const env = {
   port: getPort(process.env.PORT),
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
   wsPath: '/ws',
+  jwtSecret: getRequiredEnv(process.env.JWT_SECRET, 'JWT_SECRET'),
 } as const;
