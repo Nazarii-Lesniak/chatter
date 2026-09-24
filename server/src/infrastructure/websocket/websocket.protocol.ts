@@ -1,14 +1,33 @@
-export type ClientWebSocketEvent = { type: 'system:ping' };
+export type ClientWebSocketEvent =
+  | { type: 'system:ping' }
+  | { type: 'conversation:join'; payload: { conversationId: string } }
+  | {
+      type: 'message:send';
+      payload: { conversationId: string; content: string };
+    };
 
 export type ServerWebSocketEvent =
+  | { type: 'system:connected'; payload: { path: string } }
+  | { type: 'system:pong' }
+  | { type: 'conversation:joined'; payload: { conversationIs: string } }
   | {
-      type: 'system:connected';
+      type: 'message:new';
       payload: {
-        path: string;
+        message: {
+          id: string;
+          conversationId: string;
+          senderId: string;
+          content: string;
+          createdAt: string;
+        };
       };
     }
   | {
-      type: 'system:pong';
+      type: 'error';
+      payload: {
+        code: string;
+        message: string;
+      };
     };
 
 export function parseClientEvent(
@@ -27,6 +46,46 @@ export function parseClientEvent(
       };
     }
 
+    if (parsed.type === 'conversation:join') {
+      if (
+        !('payload' in parsed) ||
+        typeof parsed.payload !== 'object' ||
+        parsed.payload === null ||
+        !('conversationId' in parsed.payload) ||
+        typeof parsed.payload.conversationId !== 'string'
+      ) {
+        return null;
+      }
+
+      return {
+        type: 'conversation:join',
+        payload: {
+          conversationId: parsed.payload.conversationId,
+        },
+      };
+    }
+
+    if (parsed.type === 'message:send') {
+      if (
+        !('payload' in parsed) ||
+        typeof parsed.payload !== 'object' ||
+        parsed.payload === null ||
+        !('conversationId' in parsed.payload) ||
+        !('content' in parsed.payload) ||
+        typeof parsed.payload.conversationId !== 'string' ||
+        typeof parsed.payload.content !== 'string'
+      ) {
+        return null;
+      }
+
+      return {
+        type: 'message:send',
+        payload: {
+          conversationId: parsed.payload.conversationId,
+          content: parsed.payload.content,
+        },
+      };
+    }
     return null;
   } catch {
     return null;

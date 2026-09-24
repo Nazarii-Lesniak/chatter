@@ -12,6 +12,16 @@ interface AuthenticatedClient {
   userId: string;
 }
 
+function _sendError(socket: WebSocket, code: string, message: string) {
+  sendEvent(socket, {
+    type: 'error',
+    payload: {
+      code,
+      message,
+    },
+  });
+}
+
 function sendEvent(socket: WebSocket, event: ServerWebSocketEvent) {
   socket.send(JSON.stringify(event));
 }
