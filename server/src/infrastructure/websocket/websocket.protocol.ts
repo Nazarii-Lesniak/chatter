@@ -9,7 +9,7 @@ export type ClientWebSocketEvent =
 export type ServerWebSocketEvent =
   | { type: 'system:connected'; payload: { path: string } }
   | { type: 'system:pong' }
-  | { type: 'conversation:joined'; payload: { conversationIs: string } }
+  | { type: 'conversation:joined'; payload: { conversationId: string } }
   | {
       type: 'message:new';
       payload: {
