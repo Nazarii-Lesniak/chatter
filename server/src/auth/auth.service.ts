@@ -1,13 +1,14 @@
-import { randomUUID } from 'node:crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 import { env } from '../config/env';
+import { type PublicUser, toPublicUser } from '../modules/users/user.dto';
+import { createUser } from '../modules/users/user.factory';
 import type { UserRepository } from '../modules/users/user.repository';
 import type {
-  AuthUser,
   LoginInput,
   RegisterInput,
+  User,
 } from '../modules/users/user.types';
 
 export interface AccessTokenPayload {
@@ -17,7 +18,7 @@ export interface AccessTokenPayload {
 export class AuthService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async register(input: RegisterInput): Promise<AuthUser> {
+  async register(input: RegisterInput): Promise<PublicUser> {
     const existingUser = await this.userRepository.findByUsername(
       input.username,
     );
@@ -28,17 +29,12 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(input.password, 12);
 
-    const user = await this.userRepository.create({
-      id: randomUUID(),
-      username: input.username,
-      passwordHash,
-      createdAt: new Date().toISOString(),
-    });
+    const user = createUser(input.username, passwordHash);
 
     return this.toAuthUser(user);
   }
 
-  async login(input: LoginInput): Promise<AuthUser> {
+  async login(input: LoginInput): Promise<PublicUser> {
     const user = await this.userRepository.findByUsername(input.username);
 
     if (!user) {
@@ -89,7 +85,7 @@ export class AuthService {
     }
   }
 
-  async getUserById(id: string): Promise<AuthUser | null> {
+  async getUserById(id: string): Promise<PublicUser | null> {
     const user = await this.userRepository.findById(id);
 
     if (!user) {
@@ -99,15 +95,7 @@ export class AuthService {
     return this.toAuthUser(user);
   }
 
-  private toAuthUser(user: {
-    id: string;
-    username: string;
-    createdAt: string;
-  }): AuthUser {
-    return {
-      id: user.id,
-      username: user.username,
-      createdAt: user.createdAt,
-    };
+  private toAuthUser(user: User): PublicUser {
+    return toPublicUser(user);
   }
 }
