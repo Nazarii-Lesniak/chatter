@@ -14,7 +14,7 @@ const conversationRepository = new InMemoryConversationRepository();
 const messageRepository = new InMemoryMessageRepository();
 
 const authService = new AuthService(userRepository);
-const _messageService = new MessageService(
+const messageService = new MessageService(
   messageRepository,
   conversationRepository,
 );
@@ -22,7 +22,12 @@ const _messageService = new MessageService(
 const app = createApp(authService);
 const httpServer = createServer(app);
 
-attachWebSocketServer(httpServer, authService);
+attachWebSocketServer(
+  httpServer,
+  authService,
+  messageService,
+  conversationRepository,
+);
 
 httpServer.listen(env.port, () => {
   console.log(`Chatter server is running on http://localhost:${env.port}`);
