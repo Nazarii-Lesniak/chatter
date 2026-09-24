@@ -1,4 +1,4 @@
-export function getCookies(
+export function getCookie(
   cookieHeader: string | undefined,
   name: string,
 ): string | null {
@@ -17,4 +17,14 @@ export function getCookies(
   }
 
   return null;
+}
+
+export function createAccessTokenCookie(token: string): string {
+  return [
+    `access_token=${encodeURIComponent(token)}`,
+    'HttpOnly',
+    'Path=/',
+    'SameSite=Lax',
+    'MaxAge=900',
+  ].join('; ');
 }
