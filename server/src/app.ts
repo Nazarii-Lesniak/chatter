@@ -1,9 +1,11 @@
 import cors from 'cors';
 import express from 'express';
 
+import { createAuthMiddleware } from './auth/auth.middleware.js';
 import { createAuthRouter } from './auth/auth.routes.js';
 import type { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
+import { createConversationRouter } from './modules/conversations/conversation.routes.js';
 import type { ConversationService } from './modules/conversations/conversation.service.js';
 
 export function createApp(
@@ -20,6 +22,14 @@ export function createApp(
   );
 
   app.use(express.json());
+
+  const authMiddleware = createAuthMiddleware(authService);
+
+  app.use(
+    '/conversations',
+    authMiddleware,
+    createConversationRouter(conversationService),
+  );
 
   app.use('/auth', createAuthRouter(authService));
 

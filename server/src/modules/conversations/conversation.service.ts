@@ -12,10 +12,10 @@ export class ConversationService {
   ) {}
 
   async createPrivateConversation(
-    firstUserId: string,
-    secondUserId: string,
+    currentUserId: string,
+    recipientUserId: string,
   ): Promise<Conversation> {
-    if (firstUserId === secondUserId) {
+    if (currentUserId === recipientUserId) {
       throw new Error('CONVERSATION_REQUIRES_TWO_USERS');
     }
 
@@ -24,11 +24,11 @@ export class ConversationService {
     await this.conversationRepository.create(conversation);
 
     await this.conversationRepository.addParticipant(
-      createConversationParticipant(conversation.id, firstUserId),
+      createConversationParticipant(conversation.id, currentUserId),
     );
 
     await this.conversationRepository.addParticipant(
-      createConversationParticipant(conversation.id, secondUserId),
+      createConversationParticipant(conversation.id, recipientUserId),
     );
 
     return conversation;
