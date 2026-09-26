@@ -4,6 +4,7 @@ import { createApp } from './app.js';
 import { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
 import { attachWebSocketServer } from './infrastructure/websocket/websocket.server.js';
+import { ConversationService } from './modules/conversations/conversation.service.js';
 import { InMemoryConversationRepository } from './modules/conversations/in-memory-conversation.repository.js';
 import { InMemoryMessageRepository } from './modules/messages/in-memory-message.repository.js';
 import { MessageService } from './modules/messages/message.service.js';
@@ -18,8 +19,9 @@ const messageService = new MessageService(
   messageRepository,
   conversationRepository,
 );
+const conversationService = new ConversationService(conversationRepository);
 
-const app = createApp(authService);
+const app = createApp(authService, conversationService);
 const httpServer = createServer(app);
 
 attachWebSocketServer(

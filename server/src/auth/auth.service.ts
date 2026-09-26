@@ -31,6 +31,8 @@ export class AuthService {
 
     const user = createUser(input.username, passwordHash);
 
+    await this.userRepository.create(user);
+
     return this.toAuthUser(user);
   }
 

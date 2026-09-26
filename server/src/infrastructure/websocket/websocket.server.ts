@@ -3,12 +3,12 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { getCookie } from '../../auth/auth.cookie.js';
 import type { AuthService } from '../../auth/auth.service.js';
 import { env } from '../../config/env.js';
+import type { ConversationRepository } from '../../modules/conversations/conversation.repository.js';
+import type { MessageService } from '../../modules/messages/message.service.js';
 import {
   parseClientEvent,
   type ServerWebSocketEvent,
 } from './websocket.protocol.js';
-import { MessageService } from '../../modules/messages/message.service.js';
-import { ConversationRepository } from '../../modules/conversations/conversation.repository.js';
 
 interface AuthenticatedClient {
   userId: string;
@@ -41,10 +41,7 @@ export function attachWebSocketServer(
 
   const conversationSockets = new Map<string, Set<WebSocket>>();
 
-  function subscribeToConversation(
-    conversationId: string,
-    socket: WebSocket,
-  ) {
+  function subscribeToConversation(conversationId: string, socket: WebSocket) {
     let sockets = conversationSockets.get(conversationId);
 
     if (!sockets) {
@@ -53,10 +50,18 @@ export function attachWebSocketServer(
       conversationSockets.set(conversationId, sockets);
     }
 
-   sockets.add(socket);
+    sockets.add(socket);
   }
 
-  function briadcoastToConversation(
+  function unsubscribeFromAllConversation(_socket: WebSocket) {
+    for (const [conversationId, sockets] of conversationSockets) {
+      if (sockets.size === 0) {
+        conversationSockets.delete(conversationId);
+      }
+    }
+  }
+
+  function broadcastToConversation(
     conversationId: string,
     event: ServerWebSocketEvent,
   ) {
@@ -115,12 +120,12 @@ export function attachWebSocketServer(
       return;
     }
 
-    const _client: AuthenticatedClient = {
+    const client: AuthenticatedClient = {
       userId: user.id,
     };
 
     wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
+      wss.emit('connection', ws, request, client);
     });
   });
 
@@ -158,18 +163,30 @@ export function attachWebSocketServer(
         if (event.type === 'conversation:join') {
           const { conversationId } = event.payload;
 
-          const conversation = await conversationRepository.findById(conversationId);
+          const conversation =
+            await conversationRepository.findById(conversationId);
 
           if (!conversation) {
-            sendError(socket, 'CONVERSATION_NOT_FOUND', 'Conversation not found');
+            sendError(
+              socket,
+              'CONVERSATION_NOT_FOUND',
+              'Conversation not found',
+            );
 
             return;
           }
 
-          const isParticipant = await conversationRepository.isParticipant(conversationId, client.userId);
+          const isParticipant = await conversationRepository.isParticipant(
+            conversationId,
+            client.userId,
+          );
 
           if (!isParticipant) {
-            sendError(socket, 'FORBIDDEN', 'You are not a participant of this conversation');
+            sendError(
+              socket,
+              'FORBIDDEN',
+              'You are not a participant of this conversation',
+            );
 
             return;
           }
@@ -180,9 +197,80 @@ export function attachWebSocketServer(
             type: 'conversation:joined',
             payload: {
               conversationId,
-            }
-          })
+            },
+          });
         }
+
+        if (event.type === 'message:send') {
+          const { conversationId, content } = event.payload;
+
+          try {
+            const message = await messageService.sendMessage(
+              client.userId,
+              conversationId,
+              content,
+            );
+
+            broadcastToConversation(conversationId, {
+              type: 'message:new',
+              payload: { message },
+            });
+          } catch (error) {
+            if (!(error instanceof Error)) {
+              sendError(
+                socket,
+                'INTERNAL_SERVER_ERROR',
+                'Internal server error',
+              );
+
+              return;
+            }
+
+            switch (error.message) {
+              case 'CONVERSATION_NOT_FOUND':
+                sendError(
+                  socket,
+                  'CONVERSATION_NOT_FOUND',
+                  'Conversation not found',
+                );
+
+                return;
+
+              case 'FORBIDDEN':
+                sendError(
+                  socket,
+                  'FORBIDDEN',
+                  'You are not a participant of this conversation',
+                );
+
+                return;
+
+              case 'MESSAGE_CONTENT_EMPTY':
+                sendError(
+                  socket,
+                  'MESSAGE_CONTENT_EMPTY',
+                  'Message content cannot be empty',
+                );
+
+                return;
+
+              default:
+                console.error('WebSocket message error:', error);
+
+                sendError(
+                  socket,
+                  'INTERNAL_SERVER_ERROR',
+                  'Internal server error',
+                );
+
+                return;
+            }
+          }
+        }
+      });
+
+      socket.on('close', () => {
+        unsubscribeFromAllConversation(socket);
       });
     },
   );
