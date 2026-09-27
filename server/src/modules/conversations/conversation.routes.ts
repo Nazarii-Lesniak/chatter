@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import type { AuthenticatedRequest } from '../../auth/auth.middleware';
+import type { MessageService } from '../messages/message.service';
 import type { ConversationService } from './conversation.service';
 
 export function createConversationRouter(
   conversationService: ConversationService,
+  messageService: MessageService,
 ) {
   const router = Router();
 
@@ -49,6 +51,44 @@ export function createConversationRouter(
     } catch (error) {
       console.error('Conversation list error:', error);
 
+      response.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  router.get('/:conversationId/messages', async (request, response) => {
+    try {
+      const { conversationId } = request.body;
+      const userId = request.userId;
+
+      if (!userId) {
+        response.status(401).json({ message: 'Authentication required' });
+
+        return;
+      }
+
+      const messages = await messageService.getConversationMessages(
+        conversationId,
+        userId,
+      );
+
+      response.status(200).json({ messages });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'CONVERSATION_NOT_FOUND'
+      ) {
+        response.status(404).json({ message: 'Conversation not found' });
+
+        return;
+      }
+
+      if (error instanceof Error && error.message === 'FORBIDDEN') {
+        response.status(403).json({ message: 'Access denied' });
+
+        return;
+      }
+
+      console.error('Get conversation messages error:', error);
       response.status(500).json({ message: 'Internal server error' });
     }
   });

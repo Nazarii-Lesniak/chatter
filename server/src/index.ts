@@ -21,7 +21,7 @@ const messageService = new MessageService(
 );
 const conversationService = new ConversationService(conversationRepository);
 
-const app = createApp(authService, conversationService);
+const app = createApp(authService, conversationService, messageService);
 const httpServer = createServer(app);
 
 attachWebSocketServer(
