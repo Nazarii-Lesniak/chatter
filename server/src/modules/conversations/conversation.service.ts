@@ -33,4 +33,31 @@ export class ConversationService {
 
     return conversation;
   }
+
+  async getUserConversations(userId: string): Promise<Conversation[]> {
+    return this.conversationRepository.findByUserId(userId);
+  }
+
+  async getConversationById(
+    conversationId: string,
+    userId: string,
+  ): Promise<Conversation> {
+    const conversation =
+      await this.conversationRepository.findById(conversationId);
+
+    if (!conversation) {
+      throw new Error('CONVERSATION_NOT_FOUND');
+    }
+
+    const isParticipant = await this.conversationRepository.isParticipant(
+      conversationId,
+      userId,
+    );
+
+    if (!isParticipant) {
+      throw new Error('FORBIDDEN');
+    }
+
+    return conversation;
+  }
 }
