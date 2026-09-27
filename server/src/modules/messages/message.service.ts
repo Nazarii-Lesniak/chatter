@@ -40,4 +40,27 @@ export class MessageService {
 
     return this.messageRepository.create(message);
   }
+
+  async getConversationMessages(
+    conversationId: string,
+    userId: string,
+  ): Promise<Message[]> {
+    const conversation =
+      await this.conversationRepository.findById(conversationId);
+
+    if (!conversation) {
+      throw new Error('CONVERSATION_NOT_FOUND');
+    }
+
+    const isParticipant = await this.conversationRepository.isParticipant(
+      conversationId,
+      userId,
+    );
+
+    if (!isParticipant) {
+      throw new Error('FORBIDDEN');
+    }
+
+    return this.messageRepository.findByConversationId(conversationId);
+  }
 }

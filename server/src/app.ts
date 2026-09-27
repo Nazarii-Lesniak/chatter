@@ -7,10 +7,12 @@ import type { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
 import { createConversationRouter } from './modules/conversations/conversation.routes.js';
 import type { ConversationService } from './modules/conversations/conversation.service.js';
+import type { MessageService } from './modules/messages/message.service.js';
 
 export function createApp(
   authService: AuthService,
   conversationService: ConversationService,
+  messageService: MessageService,
 ) {
   const app = express();
 
@@ -28,7 +30,7 @@ export function createApp(
   app.use(
     '/conversations',
     authMiddleware,
-    createConversationRouter(conversationService),
+    createConversationRouter(conversationService, messageService),
   );
 
   app.use('/auth', createAuthRouter(authService));
