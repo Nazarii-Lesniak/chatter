@@ -37,5 +37,47 @@ export function createConversationRouter(
     }
   });
 
+  router.get('/', async (request, response) => {
+    try {
+      const authenticatedRequest = request as AuthenticatedRequest;
+
+      const conversations = await conversationService.getUserConversations(
+        authenticatedRequest.userId,
+      );
+
+      response.status(200).json({ conversations });
+    } catch (error) {
+      console.error('Conversation list error:', error);
+
+      response.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  router.get('/:conversationid', async (request, response) => {
+    try {
+      const authenticatedRequest = request as AuthenticatedRequest;
+
+      const conversation = await conversationService.getConversationById(
+        request.params.conversationid,
+        authenticatedRequest.userId,
+      );
+
+      response.status(200).json({ conversation });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'CONVERSATION_NOT_FOUND'
+      ) {
+        response.status(404).json({ message: 'Conversation not found' });
+
+        return;
+      }
+
+      console.error('Conversation details error:', error);
+
+      response.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   return router;
 }
