@@ -38,4 +38,10 @@ export const authApi = {
 
     return response.user;
   },
+
+  async getCurrentUser(): Promise<AuthUser> {
+    const response = await apiClient<AuthResponse>('/auth/me');
+
+    return response.user;
+  },
 };

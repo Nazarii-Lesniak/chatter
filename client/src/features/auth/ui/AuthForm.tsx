@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { type SubmitEvent, useState } from 'react';
-import { useAuthSrore } from '@/entities/user/model/auth.store';
+import { useAuthStore } from '@/entities/user/model/auth.store';
 import { authApi } from '@/shared/api/auth.api';
 import { Button } from '@/shared/ui/button/Button';
 import { Input } from '@/shared/ui/input/Input';
@@ -22,19 +22,18 @@ export function AuthForm({
 }: AuthFormProps) {
   const router = useRouter();
 
-  const setUser = useAuthSrore((state) => state.setUser);
-  const isLoading = useAuthSrore((state) => state.isLoading);
-  const setLoading = useAuthSrore((state) => state.setLoading);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: SubmitEvent) {
     event.preventDefault();
 
     setError(null);
-    setLoading(true);
+    setIsLoading(true);
 
     try {
       const user =
@@ -47,7 +46,7 @@ export function AuthForm({
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Something went wrong');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }
 

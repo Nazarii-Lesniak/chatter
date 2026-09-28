@@ -1,22 +1,31 @@
 import { create } from 'zustand';
-import type { AuthUser } from '@/shared/api/auth.api';
+import { type AuthUser, authApi } from '@/shared/api/auth.api';
+
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 interface AuthState {
   user: AuthUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  status: AuthStatus;
 
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
-  setLoading: (isLoading: boolean) => void;
+  initializeAuth: () => Promise<void>;
 }
 
-export const useAuthSrore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: false,
-  isLoading: false,
+  status: 'loading',
 
-  setUser: (user) => set({ user, isAuthenticated: true }),
-  clearUser: () => set({ user: null, isAuthenticated: false }),
-  setLoading: (isLoading) => set({ isLoading }),
+  setUser: (user) => set({ user, status: 'authenticated' }),
+  clearUser: () => set({ user: null, status: 'unauthenticated' }),
+
+  initializeAuth: async () => {
+    try {
+      const user = await authApi.getCurrentUser();
+
+      set({ user, status: 'authenticated' });
+    } catch {
+      set({ user: null, status: 'unauthenticated' });
+    }
+  },
 }));

@@ -1,7 +1,10 @@
 import cors from 'cors';
 import express from 'express';
 
-import { createAuthMiddleware } from './auth/auth.middleware.js';
+import {
+  type AuthenticatedRequest,
+  createAuthMiddleware,
+} from './auth/auth.middleware.js';
 import { createAuthRouter } from './auth/auth.routes.js';
 import type { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
@@ -33,7 +36,21 @@ export function createApp(
     createConversationRouter(conversationService, messageService),
   );
 
-  app.use('/auth', createAuthRouter(authService));
+  app.use('/auth', createAuthRouter(authService, authMiddleware));
+
+  app.get('/auth/me', authMiddleware, async (request, response) => {
+    const authenticatedRequest = request as AuthenticatedRequest;
+
+    const user = await authService.getUserById(authenticatedRequest.userId);
+
+    if (!user) {
+      response.status(401).json({ message: 'User not found' });
+
+      return;
+    }
+
+    response.status(200).json({ user });
+  });
 
   app.get('/test', (_request, response) => {
     response.status(200).json({

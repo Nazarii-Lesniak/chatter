@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import { createAccessTokenCookie } from './auth.cookie';
+import type { createAuthMiddleware } from './auth.middleware';
 import type { AuthService } from './auth.service';
 
-export function createAuthRouter(authService: AuthService) {
+export function createAuthRouter(
+  authService: AuthService,
+  _authMiddleware: ReturnType<typeof createAuthMiddleware>,
+) {
   const router = Router();
 
   router.post('/register', async (request, response) => {
