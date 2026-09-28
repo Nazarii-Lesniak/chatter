@@ -57,7 +57,7 @@ export function createConversationRouter(
 
   router.get('/:conversationId/messages', async (request, response) => {
     try {
-      const { conversationId } = request.body;
+      const { conversationId } = request.params;
       const userId = request.userId;
 
       if (!userId) {
