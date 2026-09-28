@@ -1,30 +1,8 @@
 import { CameraIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
-import { useState } from 'react';
-import { useChatStore } from '@/entities/chat';
 import { Button } from '@/shared/ui/button/Button';
 import * as Input from '@/shared/ui/input/Input';
 
 export function MessageInput() {
-  const [text, setText] = useState('');
-  const { sendMessage } = useChatStore();
-  const activeChatId = useChatStore((state) => state.activeChatId);
-
-  const handleSend = () => {
-    if (!text.trim() || !activeChatId) {
-      return;
-    }
-
-    sendMessage(text.trim());
-    setText('');
-  };
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
     <Input.Root variant="message">
       <Input.Icon>
@@ -33,12 +11,7 @@ export function MessageInput() {
         </Button>
       </Input.Icon>
 
-      <Input.Textarea
-        placeholder="Type your message here..."
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        onKeyDown={handleKeyDown}
-      />
+      <Input.Textarea placeholder="Type your message here..." />
 
       <Input.Icon>
         <Button variant="addon">

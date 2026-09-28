@@ -1,15 +1,25 @@
 'use client';
 
-import { useChatStore } from '@/entities/chat';
+import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
 import { SearchInput } from '@/features/search-by-name';
 
 export function ChatList() {
-  const chats = useChatStore((state) => state.chats);
-  const activeChatId = useChatStore((state) => state.activeChatId);
-
-  const setActiveChat = useChatStore((state) => state.setActiveChat);
-
+  const mockUsers: UserType[] = [
+    {
+      id: '1',
+      username: 'Oleg',
+      createdAt: 'today',
+      status: 'online',
+      unreadCount: 5,
+    },
+    {
+      id: '2',
+      username: 'Andrii',
+      createdAt: 'today',
+      status: 'online',
+    },
+  ];
   return (
     <div className="hidden md:hidden lg:flex lg:flex-col lg:w-80 xl:w-96 lg:gap-5 lg:shrink-0">
       <SearchInput />
@@ -19,24 +29,23 @@ export function ChatList() {
           People
         </h2>
 
-        {chats.length === 0 && (
+        {true && (
           <p className="text-sm text-chat-text-muted text-center py-4">
             Search for a user to start chatting
           </p>
         )}
 
-        {chats.map((chat) => (
+        {mockUsers.map((user) => (
           <button
             type="button"
-            key={chat.id}
-            onClick={() => setActiveChat(chat.id)}
+            key={user.id}
             className={`p-2 rounded-2xl cursor-pointer transition-colors ${
-              chat.id === activeChatId
+              user.id === '1'
                 ? 'bg-chat-background'
                 : 'hover:bg-chat-background/60'
             }`}
           >
-            <User user={chat} variant="chatList">
+            <User user={user} variant="chatList">
               <User.Avatar />
               <User.Info>
                 <User.Username />
@@ -44,9 +53,9 @@ export function ChatList() {
               </User.Info>
               <User.Meta>
                 <User.CreatedAt />
-                {chat.unreadCount > 0 ? (
+                {user.unreadCount && user.unreadCount > 0 ? (
                   <div className="ml-auto flex items-center justify-center size-5 rounded-full bg-orange-500 text-chat-text-white text-[10px] ">
-                    {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                    99
                   </div>
                 ) : (
                   <User.Badge />

@@ -13,7 +13,6 @@ export default function RegisterPage() {
         <AuthForm
           mode="register"
           submitText="Create account"
-          loadingText="Creating account…"
           usernamePlaceholder="Enter your name"
           passwordPlaceholder="Create a password"
         />
