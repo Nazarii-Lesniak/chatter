@@ -1,5 +1,4 @@
 import { apiClient } from './api-client';
-import { messagesApi } from './messages';
 
 export interface Conversation {
   id: string;
@@ -20,13 +19,11 @@ export interface CreateConversationInput {
 }
 
 export const conversationsApi = {
-  async create(
-    input: CreateConversationInput,
-  ): Promise<Conversation> {
+  async create(input: CreateConversationInput): Promise<Conversation> {
     const response = await apiClient<ConversationResponse>('/conversations', {
       method: 'POST',
       body: input,
-    })
+    });
 
     return response.conversation;
   },
@@ -38,8 +35,10 @@ export const conversationsApi = {
   },
 
   async getById(conversationId: string): Promise<Conversation> {
-    const response = await apiClient<ConversationResponse>(`/conversations/${conversationId}`);
+    const response = await apiClient<ConversationResponse>(
+      `/conversations/${conversationId}`,
+    );
 
     return response.conversation;
   },
-}
+};

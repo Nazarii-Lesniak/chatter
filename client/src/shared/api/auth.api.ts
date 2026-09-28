@@ -25,7 +25,7 @@ export const authApi = {
     const response = await apiClient<AuthResponse>('/auth/login', {
       method: 'POST',
       body: input,
-    })
+    });
 
     return response.user;
   },
@@ -34,8 +34,8 @@ export const authApi = {
     const response = await apiClient<AuthResponse>('/auth/register', {
       method: 'POST',
       body: input,
-    })
+    });
 
     return response.user;
-  }
-}
+  },
+};

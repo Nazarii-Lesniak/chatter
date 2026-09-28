@@ -14,9 +14,10 @@ export interface MessagesResponse {
 
 export const messagesApi = {
   async getByConversation(conversationId: string): Promise<Message[]> {
-    const response = await apiClient<MessagesResponse>(`/conversations/${conversationId}/messages`);
+    const response = await apiClient<MessagesResponse>(
+      `/conversations/${conversationId}/messages`,
+    );
 
     return response.messages;
-  }
-}
-
+  },
+};

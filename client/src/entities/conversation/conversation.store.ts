@@ -15,24 +15,27 @@ export const useConversationStore = create<ConversationState>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchConversations: async() => {
-    set({ 
+  fetchConversations: async () => {
+    set({
       isLoading: true,
       error: null,
     });
 
     try {
       const conversations = await conversationsApi.getAll();
-      
+
       set({
         conversations,
         isLoading: false,
-      })
+      });
     } catch (error) {
       set({
-        error: error instanceof Error ? error.message : 'Failed to load conversations',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to load conversations',
         isLoading: false,
-      })
+      });
     }
   },
-}))
+}));
