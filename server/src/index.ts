@@ -19,7 +19,10 @@ const messageService = new MessageService(
   messageRepository,
   conversationRepository,
 );
-const conversationService = new ConversationService(conversationRepository);
+const conversationService = new ConversationService(
+  conversationRepository,
+  userRepository,
+);
 
 const app = createApp(authService, conversationService, messageService);
 const httpServer = createServer(app);

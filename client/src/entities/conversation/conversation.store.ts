@@ -4,14 +4,17 @@ import type { Conversation } from './conversation.types';
 
 interface ConversationState {
   conversations: Conversation[];
+  activeConversationId: string | null;
   isLoading: boolean;
   error: string | null;
 
   fetchConversations: () => Promise<void>;
+  selectConversation: (conversationId: string) => void;
 }
 
-export const useConversationStore = create<ConversationState>((set) => ({
+export const useConversationStore = create<ConversationState>((set, get) => ({
   conversations: [],
+  activeConversationId: null,
   isLoading: false,
   error: null,
 
@@ -24,8 +27,17 @@ export const useConversationStore = create<ConversationState>((set) => ({
     try {
       const conversations = await conversationsApi.getAll();
 
+      const currentActiveId = get().activeConversationId;
+
+      const activeConversationExists = conversations.some(
+        (conversation) => conversation.id === currentActiveId,
+      );
+
       set({
         conversations,
+        activeConversationId: activeConversationExists
+          ? currentActiveId
+          : (conversations[0]?.id ?? null),
         isLoading: false,
       });
     } catch (error) {
@@ -37,5 +49,9 @@ export const useConversationStore = create<ConversationState>((set) => ({
         isLoading: false,
       });
     }
+  },
+
+  selectConversation: (conversationId) => {
+    set({ activeConversationId: conversationId });
   },
 }));

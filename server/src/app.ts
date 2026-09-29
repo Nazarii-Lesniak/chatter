@@ -58,33 +58,5 @@ export function createApp(
     });
   });
 
-  app.post('/conversations', async (request, response) => {
-    try {
-      const { firstUserId, secondUserId } = request.body;
-
-      const conversation = await conversationService.createPrivateConversation(
-        firstUserId,
-        secondUserId,
-      );
-
-      response.status(201).json({ conversation });
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'CONVERSATION_REQUIRES_TWO_USERS'
-      ) {
-        response
-          .status(400)
-          .json({ message: 'Conversation requires two different users' });
-
-        return;
-      }
-
-      console.error('Conversation creation error:', error);
-
-      response.status(500).json({ message: 'Internal server error' });
-    }
-  });
-
   return app;
 }
