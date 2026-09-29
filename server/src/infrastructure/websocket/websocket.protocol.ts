@@ -1,6 +1,7 @@
 export type ClientWebSocketEvent =
   | { type: 'system:ping' }
   | { type: 'conversation:join'; payload: { conversationId: string } }
+  | { type: 'conversation:leave'; payload: { conversationId: string } }
   | {
       type: 'message:send';
       payload: { conversationId: string; content: string };
@@ -59,6 +60,25 @@ export function parseClientEvent(
 
       return {
         type: 'conversation:join',
+        payload: {
+          conversationId: parsed.payload.conversationId,
+        },
+      };
+    }
+
+    if (parsed.type === 'conversation:leave') {
+      if (
+        !('payload' in parsed) ||
+        typeof parsed.payload !== 'object' ||
+        parsed.payload === null ||
+        !('conversationId' in parsed.payload) ||
+        typeof parsed.payload.conversationId !== 'string'
+      ) {
+        return null;
+      }
+
+      return {
+        type: 'conversation:leave',
         payload: {
           conversationId: parsed.payload.conversationId,
         },
