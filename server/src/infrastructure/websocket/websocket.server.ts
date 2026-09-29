@@ -53,11 +53,30 @@ export function attachWebSocketServer(
     sockets.add(socket);
   }
 
-  function unsubscribeFromAllConversation(_socket: WebSocket) {
+  function unsubscribeFromAllConversation(socket: WebSocket) {
     for (const [conversationId, sockets] of conversationSockets) {
+      sockets.delete(socket);
+
       if (sockets.size === 0) {
         conversationSockets.delete(conversationId);
       }
+    }
+  }
+
+  function unsubscribeFromConversation(
+    conversationId: string,
+    socket: WebSocket,
+  ) {
+    const sockets = conversationSockets.get(conversationId);
+
+    if (!sockets) {
+      return;
+    }
+
+    sockets.delete(socket);
+
+    if (sockets.size === 0) {
+      conversationSockets.delete(conversationId);
     }
   }
 
@@ -199,6 +218,10 @@ export function attachWebSocketServer(
               conversationId,
             },
           });
+        }
+
+        if (event.type === 'conversation:leave') {
+          unsubscribeFromConversation(event.payload.conversationId, socket);
         }
 
         if (event.type === 'message:send') {

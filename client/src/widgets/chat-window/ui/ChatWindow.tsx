@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useConversationStore } from '@/entities/conversation/conversation.store';
 import { Message } from '@/entities/message';
 import { useMessageStore } from '@/entities/message/model/message.store';
@@ -9,6 +9,10 @@ import { useAuthStore } from '@/entities/user/model/auth.store';
 import type { UserType } from '@/entities/user/model/types';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 import { MessageInput } from '@/features/send-message';
+import {
+  type ServerWebSocketEvent,
+  useChatWebSocket,
+} from '@/shared/lib/websocket';
 
 export function ChatWindow() {
   const currentUser = useAuthStore((state) => state.user);
@@ -22,10 +26,64 @@ export function ChatWindow() {
   const isLoading = useMessageStore((state) => state.isLoading);
   const error = useMessageStore((state) => state.error);
   const fetchMessages = useMessageStore((state) => state.fetchMessages);
+  const appendMessage = useMessageStore((state) => state.appendMessage);
+  const setError = useMessageStore((state) => state.setError);
 
   const activeConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId,
   );
+
+  const handleWebSocketEvent = useCallback(
+    (event: ServerWebSocketEvent) => {
+      if (event.type === 'message:new') {
+        if (event.payload.message.conversationId === activeConversationId) {
+          appendMessage(event.payload.message);
+        }
+
+        return;
+      }
+
+      if (event.type === 'error') {
+        setError(event.payload.message);
+      }
+    },
+    [activeConversationId, appendMessage, setError],
+  );
+
+  const { status: webSocketStatus, send } = useChatWebSocket(
+    currentUser !== null,
+    handleWebSocketEvent,
+  );
+
+  const joinedConversationRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (webSocketStatus !== 'open') {
+      return;
+    }
+
+    const previousConversationId = joinedConversationRef.current;
+
+    if (previousConversationId === activeConversationId) {
+      return;
+    }
+
+    if (previousConversationId) {
+      send({
+        type: 'conversation:leave',
+        payload: { conversationId: previousConversationId },
+      });
+    }
+
+    if (activeConversationId) {
+      send({
+        type: 'conversation:join',
+        payload: { conversationId: activeConversationId },
+      });
+    }
+
+    joinedConversationRef.current = activeConversationId;
+  }, [activeConversationId, send, webSocketStatus]);
 
   useEffect(() => {
     if (!activeConversationId) {
@@ -34,6 +92,23 @@ export function ChatWindow() {
 
     fetchMessages(activeConversationId);
   }, [activeConversationId, fetchMessages]);
+
+  const handleSendMessage = useCallback(
+    (content: string) => {
+      if (!activeConversationId) {
+        return false;
+      }
+
+      return send({
+        type: 'message:send',
+        payload: {
+          conversationId: activeConversationId,
+          content,
+        },
+      });
+    },
+    [activeConversationId, send],
+  );
 
   if (!activeConversation) {
     return (
@@ -106,7 +181,10 @@ export function ChatWindow() {
           })}
       </div>
 
-      <MessageInput />
+      <MessageInput
+        onSend={handleSendMessage}
+        disabled={webSocketStatus !== 'open'}
+      />
     </div>
   );
 }

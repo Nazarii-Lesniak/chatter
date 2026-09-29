@@ -7,6 +7,8 @@ interface MessageState {
   error: string | null;
 
   fetchMessages: (conversationId: string) => Promise<void>;
+  appendMessage: (message: Message) => void;
+  setError: (error: string | null) => void;
   clearMessages: () => void;
 }
 
@@ -37,6 +39,18 @@ export const useMessageStore = create<MessageState>((set) => ({
         isLoading: false,
       });
     }
+  },
+
+  appendMessage: (message) => {
+    set((state) => ({
+      messages: [...state.messages, message],
+    }));
+  },
+
+  setError: (error) => {
+    set({
+      error,
+    });
   },
 
   clearMessages: () => {
