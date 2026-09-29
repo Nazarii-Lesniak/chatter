@@ -1,3 +1,6 @@
+import { toPublicUser } from '../users/user.dto';
+import type { UserRepository } from '../users/user.repository';
+import type { ConversationView } from './conversation.dto';
 import {
   createConversation,
   createConversationParticipant,
@@ -9,6 +12,7 @@ import type { Conversation } from './conversation.types';
 export class ConversationService {
   constructor(
     private readonly conversationRepository: ConversationRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async createPrivateConversation(
@@ -17,6 +21,12 @@ export class ConversationService {
   ): Promise<Conversation> {
     if (currentUserId === recipientUserId) {
       throw new Error('CONVERSATION_REQUIRES_TWO_USERS');
+    }
+
+    const recipient = await this.userRepository.findById(recipientUserId);
+
+    if (!recipient) {
+      throw new Error('USER_NOT_FOUND');
     }
 
     const conversation = createConversation();
@@ -35,7 +45,14 @@ export class ConversationService {
   }
 
   async getUserConversations(userId: string): Promise<Conversation[]> {
-    return this.conversationRepository.findByUserId(userId);
+    const conversations =
+      await this.conversationRepository.findByUserId(userId);
+
+    return Promise.all(
+      conversations.map((conversation) =>
+        this.toConversationView(conversation, userId),
+      ),
+    );
   }
 
   async getConversationById(
@@ -58,6 +75,34 @@ export class ConversationService {
       throw new Error('FORBIDDEN');
     }
 
-    return conversation;
+    return this.toConversationView(conversation, userId);
+  }
+
+  private async toConversationView(
+    conversation: Conversation,
+    currentUserId: string,
+  ): Promise<ConversationView> {
+    const participants = await this.conversationRepository.findParticipants(
+      conversation.id,
+    );
+
+    const recipient = participants.find(
+      (participant) => participant.userId !== currentUserId,
+    );
+
+    if (!recipient) {
+      throw new Error('CONVERSATION_PARTICIPANT_NOT_FOUND');
+    }
+
+    const user = await this.userRepository.findById(recipient.userId);
+
+    if (!user) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    return {
+      ...conversation,
+      participant: toPublicUser(user),
+    };
   }
 }

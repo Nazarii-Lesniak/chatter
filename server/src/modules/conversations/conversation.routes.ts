@@ -20,7 +20,12 @@ export function createConversationRouter(
         recipientId,
       );
 
-      response.status(201).json({ conversation });
+      const conversationView = await conversationService.getConversationById(
+        conversation.id,
+        authenticatedRequest.userId,
+      );
+
+      response.status(201).json({ conversation: conversationView });
     } catch (error) {
       if (
         error instanceof Error &&
@@ -29,6 +34,12 @@ export function createConversationRouter(
         response
           .status(400)
           .json({ message: 'Conversation requires two different users' });
+
+        return;
+      }
+
+      if (error instanceof Error && error.message === 'USER_NOT_FOUND') {
+        response.status(404).json({ message: 'User not found' });
 
         return;
       }
@@ -58,17 +69,11 @@ export function createConversationRouter(
   router.get('/:conversationId/messages', async (request, response) => {
     try {
       const { conversationId } = request.params;
-      const userId = request.userId;
-
-      if (!userId) {
-        response.status(401).json({ message: 'Authentication required' });
-
-        return;
-      }
+      const authenticatedRequest = request as AuthenticatedRequest;
 
       const messages = await messageService.getConversationMessages(
         conversationId,
-        userId,
+        authenticatedRequest.userId,
       );
 
       response.status(200).json({ messages });
@@ -93,12 +98,12 @@ export function createConversationRouter(
     }
   });
 
-  router.get('/:conversationid', async (request, response) => {
+  router.get('/:conversationId', async (request, response) => {
     try {
       const authenticatedRequest = request as AuthenticatedRequest;
 
       const conversation = await conversationService.getConversationById(
-        request.params.conversationid,
+        request.params.conversationId,
         authenticatedRequest.userId,
       );
 
@@ -109,6 +114,12 @@ export function createConversationRouter(
         error.message === 'CONVERSATION_NOT_FOUND'
       ) {
         response.status(404).json({ message: 'Conversation not found' });
+
+        return;
+      }
+
+      if (error instanceof Error && error.message === 'FORBIDDEN') {
+        response.status(403).json({ message: 'Access denied' });
 
         return;
       }
