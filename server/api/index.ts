@@ -1,3 +1,3 @@
-import httpServer from '../dist/index.js';
+import app from '../src/app.js';
 
-export default httpServer;
+export default app;
