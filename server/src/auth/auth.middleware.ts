@@ -34,7 +34,7 @@ export function createAuthMiddleware(authService: AuthService) {
       return;
     }
 
-    (request as AuthenticatedRequest).userId = payload.userId;
+    (request as unknown as AuthenticatedRequest).userId = payload.userId;
 
     next();
   };

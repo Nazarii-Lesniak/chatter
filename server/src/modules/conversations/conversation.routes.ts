@@ -13,7 +13,7 @@ export function createConversationRouter(
     try {
       const { recipientId } = request.body;
 
-      const authenticatedRequest = request as AuthenticatedRequest;
+      const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
       const conversation = await conversationService.createPrivateConversation(
         authenticatedRequest.userId,
@@ -52,7 +52,7 @@ export function createConversationRouter(
 
   router.get('/', async (request, response) => {
     try {
-      const authenticatedRequest = request as AuthenticatedRequest;
+      const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
       const conversations = await conversationService.getUserConversations(
         authenticatedRequest.userId,
@@ -69,7 +69,7 @@ export function createConversationRouter(
   router.get('/:conversationId/messages', async (request, response) => {
     try {
       const { conversationId } = request.params;
-      const authenticatedRequest = request as AuthenticatedRequest;
+      const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
       const messages = await messageService.getConversationMessages(
         conversationId,
@@ -100,7 +100,7 @@ export function createConversationRouter(
 
   router.get('/:conversationId', async (request, response) => {
     try {
-      const authenticatedRequest = request as AuthenticatedRequest;
+      const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
       const conversation = await conversationService.getConversationById(
         request.params.conversationId,

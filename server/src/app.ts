@@ -42,7 +42,7 @@ export function createApp(
   app.use('/auth', createAuthRouter(authService, authMiddleware));
 
   app.get('/auth/me', authMiddleware, async (request, response) => {
-    const authenticatedRequest = request as AuthenticatedRequest;
+    const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
     const user = await authService.getUserById(authenticatedRequest.userId);
 
