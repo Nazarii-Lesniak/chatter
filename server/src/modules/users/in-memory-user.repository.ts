@@ -23,4 +23,26 @@ export class InMemoryUserRepository implements UserRepository {
 
     return null;
   }
+
+  async searchByUsername(query: string, limit = 10): Promise<User[]> {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return [];
+    }
+
+    const users: User[] = [];
+
+    for (const user of this.users.values()) {
+      if (user.username.toLowerCase().includes(normalizedQuery)) {
+        users.push(user);
+      }
+
+      if (users.length >= limit) {
+        break;
+      }
+    }
+
+    return users;
+  }
 }

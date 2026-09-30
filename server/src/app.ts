@@ -11,11 +11,14 @@ import { env } from './config/env.js';
 import { createConversationRouter } from './modules/conversations/conversation.routes.js';
 import type { ConversationService } from './modules/conversations/conversation.service.js';
 import type { MessageService } from './modules/messages/message.service.js';
+import { createUserRouter } from './modules/users/user.routes.js';
+import type { UserService } from './modules/users/user.service.js';
 
 export function createApp(
   authService: AuthService,
   conversationService: ConversationService,
   messageService: MessageService,
+  userService: UserService,
 ) {
   const app = express();
 
@@ -51,6 +54,8 @@ export function createApp(
 
     response.status(200).json({ user });
   });
+
+  app.use('/users', authMiddleware, createUserRouter(userService));
 
   app.get('/test', (_request, response) => {
     response.status(200).json({
