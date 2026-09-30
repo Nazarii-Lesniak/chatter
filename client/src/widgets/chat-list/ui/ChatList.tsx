@@ -19,6 +19,9 @@ export function ChatList() {
   const selectConversation = useConversationStore(
     (state) => state.selectConversation,
   );
+  const createConversation = useConversationStore(
+    (state) => state.createConversation,
+  );
 
   useEffect(() => {
     fetchConversations();
@@ -26,7 +29,7 @@ export function ChatList() {
 
   return (
     <div className="hidden md:hidden lg:flex lg:flex-col lg:w-80 xl:w-96 lg:gap-5 lg:shrink-0">
-      <SearchInput />
+      <SearchInput onSelectUser={(user) => void createConversation(user.id)} />
 
       <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 lg:flex lg:flex-col lg:gap-4 lg:p-4 lg:rounded-3xl bg-white shadow-input-glow">
         <h2 className="text-base md:text-lg lg:text-lg lg:font-semibold">

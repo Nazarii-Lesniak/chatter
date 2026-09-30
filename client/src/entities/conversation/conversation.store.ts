@@ -10,6 +10,7 @@ interface ConversationState {
 
   fetchConversations: () => Promise<void>;
   selectConversation: (conversationId: string) => void;
+  createConversation: (recipientId: string) => Promise<void>;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
@@ -53,5 +54,32 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
   selectConversation: (conversationId) => {
     set({ activeConversationId: conversationId });
+  },
+
+  createConversation: async (recipientId) => {
+    set({ error: null });
+
+    try {
+      const conversation = await conversationsApi.create({ recipientId });
+
+      set((state) => {
+        const exists = state.conversations.some(
+          (item) => item.id === conversation.id,
+        );
+
+        return {
+          conversations: exists
+            ? state.conversations
+            : [conversation, ...state.conversations],
+        };
+      });
+    } catch (error) {
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create conversation',
+      });
+    }
   },
 }));

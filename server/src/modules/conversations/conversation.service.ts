@@ -29,6 +29,16 @@ export class ConversationService {
       throw new Error('USER_NOT_FOUND');
     }
 
+    const existingConversation =
+      await this.conversationRepository.findPrivateConversation(
+        currentUserId,
+        recipientUserId,
+      );
+
+    if (existingConversation) {
+      return existingConversation;
+    }
+
     const conversation = createConversation();
 
     await this.conversationRepository.create(conversation);

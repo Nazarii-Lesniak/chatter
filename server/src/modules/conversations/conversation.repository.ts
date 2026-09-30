@@ -7,6 +7,10 @@ export interface ConversationRepository {
   create(conversation: Conversation): Promise<Conversation>;
   findById(id: string): Promise<Conversation | null>;
   findByUserId(userId: string): Promise<Conversation[]>;
+  findPrivateConversation(
+    firstUserId: string,
+    secondUserId: string,
+  ): Promise<Conversation | null>;
   addParticipant(
     participant: ConversationParticipant,
   ): Promise<ConversationParticipant>;
