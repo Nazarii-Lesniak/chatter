@@ -3,17 +3,18 @@ import { createApp } from './app.js';
 
 import { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
+import { database } from './infrastructure/database/batabase.js';
 import { attachWebSocketServer } from './infrastructure/websocket/websocket.server.js';
 import { ConversationService } from './modules/conversations/conversation.service.js';
-import { InMemoryConversationRepository } from './modules/conversations/in-memory-conversation.repository.js';
-import { InMemoryMessageRepository } from './modules/messages/in-memory-message.repository.js';
+import { PostgresConversationRepository } from './modules/conversations/postgres-conversation.repository.js';
 import { MessageService } from './modules/messages/message.service.js';
-import { InMemoryUserRepository } from './modules/users/in-memory-user.repository.js';
+import { PostgresMessageRepository } from './modules/messages/postgres-message.repository.js';
+import { PostgresUserRepository } from './modules/users/postgres-user.repository.js';
 import { UserService } from './modules/users/user.service.js';
 
-const userRepository = new InMemoryUserRepository();
-const conversationRepository = new InMemoryConversationRepository();
-const messageRepository = new InMemoryMessageRepository();
+const userRepository = new PostgresUserRepository(database);
+const conversationRepository = new PostgresConversationRepository(database);
+const messageRepository = new PostgresMessageRepository(database);
 
 const authService = new AuthService(userRepository);
 const userService = new UserService(userRepository);
@@ -43,7 +44,11 @@ attachWebSocketServer(
   conversationRepository,
 );
 
-httpServer.listen(env.port, () => {
-  console.log(`Chatter server is running on http://localhost:${env.port}`);
-  console.log(`WebSocket endpoint: ws://localhost:${env.port}${env.wsPath}`);
-});
+export default httpServer;
+
+if (!process.env.VERCEL) {
+  httpServer.listen(env.port, () => {
+    console.log(`Chatter server is running on http://localhost:${env.port}`);
+    console.log(`WebSocket endpoint: ws://localhost:${env.port}${env.wsPath}`);
+  });
+}

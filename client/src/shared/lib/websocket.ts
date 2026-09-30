@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_APR_URL ?? 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+const WS_URL = API_URL.replace(/^http/, 'ws');
 
 export type ClientWebSocketEvent =
   | { type: 'conversation:join'; payload: { conversationId: string } }
@@ -44,7 +46,7 @@ export type ServerWebSocketEvent =
 
 export type WebSocketStatus = 'closed' | 'connecting' | 'open' | 'error';
 
-function getSocketUrl() {
+function _getSocketUrl() {
   const url = new URL('/ws', API_URL);
 
   url.protocol = url.protocol === 'https' ? 'wss' : 'ws';
@@ -89,7 +91,7 @@ export function useChatWebSocket(
       return;
     }
 
-    const socket = new WebSocket(getSocketUrl());
+    const socket = new WebSocket(`${WS_URL}/ws`);
 
     socketRef.current = socket;
     setStatus('connecting');
