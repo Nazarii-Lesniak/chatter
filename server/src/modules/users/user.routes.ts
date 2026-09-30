@@ -9,7 +9,7 @@ export function createUserRouter(userService: UserService) {
     try {
       const query = typeof request.query.q === 'string' ? request.query.q : '';
 
-      const authenticatedRequest = request as AuthenticatedRequest;
+      const authenticatedRequest = request as unknown as AuthenticatedRequest;
 
       const users = await userService.searchUsers(
         query,
