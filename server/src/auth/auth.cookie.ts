@@ -1,3 +1,5 @@
+import { env } from '../config/env';
+
 export function getCookie(
   cookieHeader: string | undefined,
   name: string,
@@ -20,11 +22,17 @@ export function getCookie(
 }
 
 export function createAccessTokenCookie(token: string): string {
+  const sameSite = env.isProduction ? 'None' : 'Lax';
+  const secure = env.isProduction ? 'Secure' : '';
+
   return [
     `access_token=${encodeURIComponent(token)}`,
     'HttpOnly',
     'Path=/',
-    'SameSite=Lax',
-    'MaxAge=900',
-  ].join('; ');
+    `SameSite=${sameSite}`,
+    'MaxAge=604800',
+    secure,
+  ]
+    .filter(Boolean)
+    .join('; ');
 }
