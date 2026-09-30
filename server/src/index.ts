@@ -9,19 +9,31 @@ import { InMemoryConversationRepository } from './modules/conversations/in-memor
 import { InMemoryMessageRepository } from './modules/messages/in-memory-message.repository.js';
 import { MessageService } from './modules/messages/message.service.js';
 import { InMemoryUserRepository } from './modules/users/in-memory-user.repository.js';
+import { UserService } from './modules/users/user.service.js';
 
 const userRepository = new InMemoryUserRepository();
 const conversationRepository = new InMemoryConversationRepository();
 const messageRepository = new InMemoryMessageRepository();
 
 const authService = new AuthService(userRepository);
+const userService = new UserService(userRepository);
+
 const messageService = new MessageService(
   messageRepository,
   conversationRepository,
 );
-const conversationService = new ConversationService(conversationRepository);
 
-const app = createApp(authService, conversationService, messageService);
+const conversationService = new ConversationService(
+  conversationRepository,
+  userRepository,
+);
+
+const app = createApp(
+  authService,
+  conversationService,
+  messageService,
+  userService,
+);
 const httpServer = createServer(app);
 
 attachWebSocketServer(

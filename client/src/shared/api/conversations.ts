@@ -1,18 +1,12 @@
+import type { Conversation } from '@/entities/conversation/conversation.types';
 import { apiClient } from './api-client';
-import { messagesApi } from './messages';
-
-export interface Conversation {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface ConversationResponse {
   conversation: Conversation;
 }
 
 export interface ConversationsResponse {
-  conversation: Conversation[];
+  conversations: Conversation[];
 }
 
 export interface CreateConversationInput {
@@ -20,13 +14,11 @@ export interface CreateConversationInput {
 }
 
 export const conversationsApi = {
-  async create(
-    input: CreateConversationInput,
-  ): Promise<Conversation> {
+  async create(input: CreateConversationInput): Promise<Conversation> {
     const response = await apiClient<ConversationResponse>('/conversations', {
       method: 'POST',
       body: input,
-    })
+    });
 
     return response.conversation;
   },
@@ -34,12 +26,14 @@ export const conversationsApi = {
   async getAll(): Promise<Conversation[]> {
     const response = await apiClient<ConversationsResponse>('/conversations');
 
-    return response.conversation;
+    return response.conversations;
   },
 
   async getById(conversationId: string): Promise<Conversation> {
-    const response = await apiClient<ConversationResponse>(`/conversations/${conversationId}`);
+    const response = await apiClient<ConversationResponse>(
+      `/conversations/${conversationId}`,
+    );
 
     return response.conversation;
   },
-}
+};

@@ -6,7 +6,6 @@ import type {
 
 export class InMemoryConversationRepository implements ConversationRepository {
   private readonly conversation = new Map<string, Conversation>();
-
   private readonly participants = new Map<string, ConversationParticipant[]>();
 
   async create(conversation: Conversation): Promise<Conversation> {
@@ -32,6 +31,29 @@ export class InMemoryConversationRepository implements ConversationRepository {
     }
 
     return result;
+  }
+
+  async findPrivateConversation(
+    firstUserId: string,
+    secondUserId: string,
+  ): Promise<Conversation | null> {
+    for (const conversation of this.conversation.values()) {
+      const participants = await this.findParticipants(conversation.id);
+
+      if (
+        participants.length !== 2 ||
+        !participants.some(
+          (participant) => participant.userId === firstUserId,
+        ) ||
+        !participants.some((participant) => participant.userId === secondUserId)
+      ) {
+        continue;
+      }
+
+      return conversation;
+    }
+
+    return null;
   }
 
   async addParticipant(

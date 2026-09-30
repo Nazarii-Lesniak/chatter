@@ -6,7 +6,7 @@ interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
 
 export async function apiClient<T>(
   path: string,
-  options: ApiRequestOptions = {}
+  options: ApiRequestOptions = {},
 ) {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -27,9 +27,7 @@ export async function apiClient<T>(
       if (data && typeof data.message === 'string') {
         message = data.message;
       }
-    } catch {
-
-    }
+    } catch {}
 
     throw new Error(message);
   }

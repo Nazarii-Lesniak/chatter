@@ -23,7 +23,12 @@ export function LastSeen({
 
   return (
     <time className={cn(lastSeenVariants({ variant }), className)} {...props}>
-      {!isOnline ? `${user.status}${user.lastSeen}` : `${user.status}`}
+      {children ||
+        (isOnline
+          ? 'online'
+          : user.lastSeen
+            ? `offline · ${user.lastSeen}`
+            : 'offline')}
     </time>
   );
 }
