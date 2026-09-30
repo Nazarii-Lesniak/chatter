@@ -6,62 +6,76 @@ import {
   createAuthMiddleware,
 } from './auth/auth.middleware.js';
 import { createAuthRouter } from './auth/auth.routes.js';
-import type { AuthService } from './auth/auth.service.js';
+import { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
+import { database } from './infrastructure/database/batabase.js';
 import { createConversationRouter } from './modules/conversations/conversation.routes.js';
-import type { ConversationService } from './modules/conversations/conversation.service.js';
-import type { MessageService } from './modules/messages/message.service.js';
+import { ConversationService } from './modules/conversations/conversation.service.js';
+import { PostgresConversationRepository } from './modules/conversations/postgres-conversation.repository.js';
+import { MessageService } from './modules/messages/message.service.js';
+import { PostgresMessageRepository } from './modules/messages/postgres-message.repository.js';
+import { PostgresUserRepository } from './modules/users/postgres-user.repository.js';
 import { createUserRouter } from './modules/users/user.routes.js';
-import type { UserService } from './modules/users/user.service.js';
+import { UserService } from './modules/users/user.service.js';
 
-export function createApp(
-  authService: AuthService,
-  conversationService: ConversationService,
-  messageService: MessageService,
-  userService: UserService,
-) {
-  const app = express();
+const userRepository = new PostgresUserRepository(database);
+const conversationRepository = new PostgresConversationRepository(database);
+const messageRepository = new PostgresMessageRepository(database);
 
-  app.use(
-    cors({
-      origin: env.clientOrigin,
-      credentials: true,
-    }),
-  );
+const authService = new AuthService(userRepository);
+const userService = new UserService(userRepository);
 
-  app.use(express.json());
+const messageService = new MessageService(
+  messageRepository,
+  conversationRepository,
+);
 
-  const authMiddleware = createAuthMiddleware(authService);
+const conversationService = new ConversationService(
+  conversationRepository,
+  userRepository,
+);
 
-  app.use(
-    '/conversations',
-    authMiddleware,
-    createConversationRouter(conversationService, messageService),
-  );
+const app = express();
 
-  app.use('/auth', createAuthRouter(authService, authMiddleware));
+app.use(
+  cors({
+    origin: env.clientOrigin,
+    credentials: true,
+  }),
+);
 
-  app.get('/auth/me', authMiddleware, async (request, response) => {
-    const authenticatedRequest = request as unknown as AuthenticatedRequest;
+app.use(express.json());
 
-    const user = await authService.getUserById(authenticatedRequest.userId);
+const authMiddleware = createAuthMiddleware(authService);
 
-    if (!user) {
-      response.status(401).json({ message: 'User not found' });
+app.use(
+  '/conversations',
+  authMiddleware,
+  createConversationRouter(conversationService, messageService),
+);
 
-      return;
-    }
+app.use('/auth', createAuthRouter(authService, authMiddleware));
 
-    response.status(200).json({ user });
+app.get('/auth/me', authMiddleware, async (request, response) => {
+  const authenticatedRequest = request as unknown as AuthenticatedRequest;
+
+  const user = await authService.getUserById(authenticatedRequest.userId);
+
+  if (!user) {
+    response.status(401).json({ message: 'User not found' });
+
+    return;
+  }
+
+  response.status(200).json({ user });
+});
+
+app.use('/users', authMiddleware, createUserRouter(userService));
+
+app.get('/test', (_request, response) => {
+  response.status(200).json({
+    status: 'ok',
   });
+});
 
-  app.use('/users', authMiddleware, createUserRouter(userService));
-
-  app.get('/test', (_request, response) => {
-    response.status(200).json({
-      status: 'ok',
-    });
-  });
-
-  return app;
-}
+export default app;
