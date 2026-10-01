@@ -22,14 +22,13 @@ export function getCookie(
 }
 
 export function createAccessTokenCookie(token: string): string {
-  const sameSite = env.isProduction ? 'None' : 'Lax';
   const secure = env.isProduction ? 'Secure' : '';
 
   return [
     `access_token=${encodeURIComponent(token)}`,
     'HttpOnly',
     'Path=/',
-    `SameSite=${sameSite}`,
+    'SameSite=Lax',
     'Max-Age=604800',
     secure,
   ]
