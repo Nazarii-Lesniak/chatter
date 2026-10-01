@@ -23,4 +23,5 @@ export const env = {
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
   wsPath: '/ws',
   jwtSecret: getRequiredEnv(process.env.JWT_SECRET, 'JWT_SECRET'),
+  databaseUrl: getRequiredEnv(process.env.DATABASE_URL, 'DATABASE_URL'),
 } as const;
