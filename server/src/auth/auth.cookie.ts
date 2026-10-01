@@ -30,7 +30,7 @@ export function createAccessTokenCookie(token: string): string {
     'HttpOnly',
     'Path=/',
     `SameSite=${sameSite}`,
-    'MaxAge=604800',
+    'Max-Age=604800',
     secure,
   ]
     .filter(Boolean)
