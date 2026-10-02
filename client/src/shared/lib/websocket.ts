@@ -47,7 +47,7 @@ export type WebSocketStatus = 'closed' | 'connecting' | 'open' | 'error';
 function getSocketUrl() {
   const url = new URL('/ws', API_URL);
 
-  url.protocol = url.protocol === 'https' ? 'wss' : 'ws';
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
 
   return url.toString();
 }
