@@ -44,8 +44,6 @@ attachWebSocketServer(
   conversationRepository,
 );
 
-export default httpServer;
-
 httpServer.listen(env.port, () => {
   console.log(`Chatter server is running on http://localhost:${env.port}`);
   console.log(`WebSocket endpoint: ws://localhost:${env.port}${env.wsPath}`);

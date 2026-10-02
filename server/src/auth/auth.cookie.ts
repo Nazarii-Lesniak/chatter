@@ -20,11 +20,19 @@ export function getCookie(
 }
 
 export function createAccessTokenCookie(token: string): string {
-  return [
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const parts = [
     `access_token=${encodeURIComponent(token)}`,
     'HttpOnly',
     'Path=/',
-    'SameSite=Lax',
+    isProduction ? 'SameSite=None' : 'SameSite=Lax',
     'MaxAge=900',
-  ].join('; ');
+  ];
+
+  if (isProduction) {
+    parts.push('Secure');
+  }
+
+  return parts.join('; ');
 }

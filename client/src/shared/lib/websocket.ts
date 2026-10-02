@@ -45,9 +45,11 @@ export type ServerWebSocketEvent =
 export type WebSocketStatus = 'closed' | 'connecting' | 'open' | 'error';
 
 function getSocketUrl() {
-  const url = new URL('/ws', API_URL);
+  const base = API_URL || 'http://localhost:3001';
 
-  url.protocol = url.protocol === 'https' ? 'wss' : 'ws';
+  const url = new URL('/ws', base);
+
+  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
 
   return url.toString();
 }
