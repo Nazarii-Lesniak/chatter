@@ -45,9 +45,32 @@ export type ServerWebSocketEvent =
 export type WebSocketStatus = 'closed' | 'connecting' | 'open' | 'error';
 
 function getSocketUrl() {
-  const url = new URL('/ws', API_URL);
+  let base = API_URL || '';
 
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  if (typeof window !== 'undefined' && (!base || base.startsWith('/'))) {
+    base = window.location.origin + base;
+  }
+
+  if (base && !base.startsWith('http://') && !base.startsWith('https://')) {
+    const isCloudHost =
+      base.includes('.onrender.com') || base.includes('.vercel.app');
+
+    const isCurrentSecure =
+      typeof window !== 'undefined' && window.location.protocol === 'https:';
+
+    const protocol = isCurrentSecure || isCloudHost ? 'https:' : 'http:';
+    base = `${protocol}//${base.replace(/^\/+/, '')}`;
+  }
+
+  if (!base) base = 'http://localhost';
+
+  const url = new URL('/ws', base);
+
+  const isSecure =
+    (typeof window !== 'undefined' && window.location.protocol === 'https:') ||
+    url.protocol === 'https:';
+
+  url.protocol = isSecure ? 'wss:' : 'ws:';
 
   return url.toString();
 }
