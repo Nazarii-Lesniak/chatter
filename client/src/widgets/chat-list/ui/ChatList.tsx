@@ -1,16 +1,26 @@
 'use client';
 
+import { PanelLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useConversationStore } from '@/entities/conversation/conversation.store';
 import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
 import { SearchInput } from '@/features/search-by-name';
+import { Button } from '@/shared/ui/button/Button';
 
-export function ChatList() {
+interface ChatListProps {
+  onOpenSidebar: () => void;
+}
+
+export function ChatList({ onOpenSidebar }: ChatListProps) {
+  const router = useRouter();
+
   const conversations = useConversationStore((state) => state.conversations);
   const activeConversationId = useConversationStore(
     (state) => state.activeConversationId,
   );
+  const mobileView = useConversationStore((state) => state.mobileView);
   const isLoading = useConversationStore((state) => state.isLoading);
   const error = useConversationStore((state) => state.error);
   const fetchConversations = useConversationStore(
@@ -27,14 +37,36 @@ export function ChatList() {
     fetchConversations();
   }, [fetchConversations]);
 
-  return (
-    <div className="hidden md:hidden lg:flex lg:flex-col lg:w-80 xl:w-96 lg:gap-5 lg:shrink-0">
-      <SearchInput onSelectUser={(user) => void createConversation(user.id)} />
+  const getNormalizedErrorMessage = (error: string) => {
+    if (error === 'Invalid or expired token') {
+      return 'The session has expired. Please login again.';
+    }
 
-      <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 lg:flex lg:flex-col lg:gap-4 lg:p-4 lg:rounded-3xl bg-white shadow-input-glow">
-        <h2 className="text-base md:text-lg lg:text-lg lg:font-semibold">
-          People
-        </h2>
+    return 'Something went wrong, please try again later';
+  };
+
+  return (
+    <div
+      className={`flex flex-col w-full gap-5 md:w-80 xl:w-96 md:shrink-0 ${
+        mobileView === 'chat' ? 'hidden md:flex' : 'flex'
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Button
+          variant="addon"
+          aria-label="Open sidebar"
+          onClick={onOpenSidebar}
+          className="lg:hidden shrink-0"
+        >
+          <PanelLeft aria-hidden="true" />
+        </Button>
+        <SearchInput
+          onSelectUser={(user) => void createConversation(user.id)}
+        />
+      </div>
+
+      <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 flex flex-col gap-4 p-4 rounded-3xl bg-white shadow-input-glow">
+        <h2 className="text-base md:text-lg font-semibold">People</h2>
 
         {isLoading && (
           <p className="text-sm text-chat-text-muted text-center py-4">
@@ -43,7 +75,19 @@ export function ChatList() {
         )}
 
         {error && (
-          <p className="text-sm text-red-500 text-center py-4">{error}</p>
+          <div className="flex flex-col items-center">
+            <p className="text-sm text-chat-text-muted text-center py-4">
+              {getNormalizedErrorMessage(error)}
+            </p>
+            <Button
+              type="button"
+              variant="auth"
+              className="w-full"
+              onClick={() => router.push('/login')}
+            >
+              Login
+            </Button>
+          </div>
         )}
 
         {!isLoading && !error && conversations.length === 0 && (
