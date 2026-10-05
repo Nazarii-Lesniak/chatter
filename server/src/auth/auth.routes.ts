@@ -1,5 +1,8 @@
 import { Router } from 'express';
-import { createAccessTokenCookie } from './auth.cookie';
+import {
+  createAccessTokenCookie,
+  createClearAccessTokenCookie,
+} from './auth.cookie';
 import type { createAuthMiddleware } from './auth.middleware';
 import type { AuthService } from './auth.service';
 
@@ -61,6 +64,11 @@ export function createAuthRouter(
         message: 'Internal server error',
       });
     }
+  });
+
+  router.post('/logout', (_request, response) => {
+    response.setHeader('Set-Cookie', createClearAccessTokenCookie());
+    response.status(200).json({ success: true });
   });
 
   return router;
