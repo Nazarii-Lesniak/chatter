@@ -27,6 +27,7 @@ const messageService = new MessageService(
 const conversationService = new ConversationService(
   conversationRepository,
   userRepository,
+  messageRepository,
 );
 
 const app = createApp(

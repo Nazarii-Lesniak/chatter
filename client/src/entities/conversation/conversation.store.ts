@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { conversationsApi } from '@/shared/api/conversations';
-import type { Conversation } from './conversation.types';
+import type { Conversation, ConversationMessage } from './conversation.types';
 
 type MobileView = 'contacts' | 'chat';
 
@@ -15,6 +15,7 @@ interface ConversationState {
   selectConversation: (conversationId: string) => void;
   goBackToContacts: () => void;
   createConversation: (recipientId: string) => Promise<void>;
+  updateLastMessage: (conversationId: string, message: ConversationMessage) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
@@ -90,5 +91,19 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
             : 'Failed to create conversation',
       });
     }
+  },
+
+  updateLastMessage: (conversationId, message) => {
+    set((state) => ({
+      conversations: state.conversations.map((conversation) =>
+        conversation.id === conversationId
+          ? {
+              ...conversation,
+              lastMessage: message,
+              updatedAt: message.createdAt,
+            }
+          : conversation,
+      ),
+    }));
   },
 }));

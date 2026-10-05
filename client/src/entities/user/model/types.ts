@@ -9,6 +9,7 @@ export interface UserType {
   lastSeen?: string;
   createdAt: string;
   unreadCount?: number;
+  lastMessage?: string;
 }
 
 export interface UserContextProps {
