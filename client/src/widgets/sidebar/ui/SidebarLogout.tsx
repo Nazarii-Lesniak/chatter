@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/button/Button';
 export function SidebarLogout() {
   return (
     <Button variant="sidebar" aria-label="Logout">
-      <LogOut />
+      <LogOut aria-hidden="true" />
     </Button>
   );
 }

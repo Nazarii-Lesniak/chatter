@@ -10,16 +10,18 @@ const NAV_ITEMS = [
 
 export function SidebarNavigation() {
   return (
-    <ul className="lg:flex lg:flex-col lg:gap-6 lg:items-center">
-      {NAV_ITEMS.map(({ icon: Icon, label }) => {
-        return (
-          <li key={label}>
-            <Button variant="sidebar">
-              <Icon aria-label={label} />
-            </Button>
-          </li>
-        );
-      })}
-    </ul>
+    <nav aria-label="Main navigation">
+      <ul className="flex flex-col gap-6 items-center">
+        {NAV_ITEMS.map(({ icon: Icon, label }) => {
+          return (
+            <li key={label}>
+              <Button variant="sidebar" aria-label={label}>
+                <Icon aria-hidden="true" />
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }

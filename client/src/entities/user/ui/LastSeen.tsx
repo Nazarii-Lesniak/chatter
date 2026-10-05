@@ -21,8 +21,16 @@ export function LastSeen({
 
   const isOnline = user.status === 'online';
 
+  const dateTimeValue = isOnline
+    ? new Date().toISOString()
+    : (user.lastSeen ?? undefined);
+
   return (
-    <time className={cn(lastSeenVariants({ variant }), className)} {...props}>
+    <time
+      dateTime={dateTimeValue}
+      className={cn(lastSeenVariants({ variant }), className)}
+      {...props}
+    >
       {children ||
         (isOnline
           ? 'online'
