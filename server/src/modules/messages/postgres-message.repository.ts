@@ -90,4 +90,26 @@ export class PostgresMessageRepository implements MessageRepository {
 
     return result.rows.map(toMessage);
   }
+
+  async findLastMessageByConversationId(
+    conversationId: string,
+  ): Promise<Message | null> {
+    const result = await this.database.query<MessageRow>(
+      `
+        SELECT
+          id,
+          conversation_id,
+          sender_id,
+          content,
+          created_at
+        FROM messages
+        WHERE conversation_id = $1
+        ORDER BY created_at DESC
+        LIMIT 1
+      `,
+      [conversationId],
+    );
+
+    return result.rows[0] ? toMessage(result.rows[0]) : null;
+  }
 }

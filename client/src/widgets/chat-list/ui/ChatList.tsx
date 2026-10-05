@@ -104,6 +104,7 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
               username: conversation.participant.username,
               createdAt: conversation.participant.createdAt,
               status: 'offline',
+              lastMessage: conversation.lastMessage?.content,
             };
 
             const isActive = conversation.id === activeConversationId;
@@ -123,7 +124,7 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
                   <User.Avatar />
                   <User.Info>
                     <User.Username />
-                    <User.LastSeen />
+                    <User.LastMessage />
                   </User.Info>
                   <User.Meta>
                     <User.CreatedAt />

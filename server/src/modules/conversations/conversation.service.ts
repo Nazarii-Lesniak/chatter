@@ -1,3 +1,4 @@
+import type { MessageRepository } from '../messages/message.repository';
 import { toPublicUser } from '../users/user.dto';
 import type { UserRepository } from '../users/user.repository';
 import type { ConversationView } from './conversation.dto';
@@ -13,6 +14,7 @@ export class ConversationService {
   constructor(
     private readonly conversationRepository: ConversationRepository,
     private readonly userRepository: UserRepository,
+    private readonly messageRepository?: MessageRepository,
   ) {}
 
   async createPrivateConversation(
@@ -110,9 +112,14 @@ export class ConversationService {
       throw new Error('USER_NOT_FOUND');
     }
 
+    const lastMessage = this.messageRepository
+      ? await this.messageRepository.findLastMessageByConversationId(conversation.id)
+      : null;
+
     return {
       ...conversation,
       participant: toPublicUser(user),
+      lastMessage,
     };
   }
 }
