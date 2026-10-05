@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 import { useConversationStore } from '@/entities/conversation/conversation.store';
 import { Message } from '@/entities/message';
@@ -9,10 +10,12 @@ import { useAuthStore } from '@/entities/user/model/auth.store';
 import type { UserType } from '@/entities/user/model/types';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 import { MessageInput } from '@/features/send-message';
+import { cn } from '@/shared/lib/class-merge';
 import {
   type ServerWebSocketEvent,
   useChatWebSocket,
 } from '@/shared/lib/websocket';
+import { Button } from '@/shared/ui/button/Button';
 
 export function ChatWindow() {
   const currentUser = useAuthStore((state) => state.user);
@@ -21,6 +24,10 @@ export function ChatWindow() {
     (state) => state.activeConversationId,
   );
   const conversations = useConversationStore((state) => state.conversations);
+  const mobileView = useConversationStore((state) => state.mobileView);
+  const goBackToContacts = useConversationStore(
+    (state) => state.goBackToContacts,
+  );
 
   const messages = useMessageStore((state) => state.messages);
   const isLoading = useMessageStore((state) => state.isLoading);
@@ -93,6 +100,12 @@ export function ChatWindow() {
     fetchMessages(activeConversationId);
   }, [activeConversationId, fetchMessages]);
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
   const handleSendMessage = useCallback(
     (content: string) => {
       if (!activeConversationId) {
@@ -112,7 +125,12 @@ export function ChatWindow() {
 
   if (!activeConversation) {
     return (
-      <div className="flex flex-col w-full h-full p-3 md:p-5 lg:p-6 rounded-2xl md:rounded-3xl bg-white items-center justify-center shadow-input-glow">
+      <div
+        className={cn(
+          'flex flex-col w-full h-full p-3 md:p-5 lg:p-6 rounded-2xl md:rounded-3xl bg-white items-center justify-center shadow-input-glow',
+          mobileView === 'contacts' ? 'hidden md:flex' : 'flex',
+        )}
+      >
         <p className="text-sm text-chat-text-muted">
           Select a conversation to start chatting
         </p>
@@ -128,18 +146,32 @@ export function ChatWindow() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow">
-      <div className="flex justify-between w-full pb-2 md:pb-3 lg:pb-4">
-        <User user={companion} variant="chatWindow">
-          <User.Avatar />
-          <User.Info>
-            <User.Username />
-            <User.LastSeen />
-          </User.Info>
-        </User>
+    <div
+      className={cn('flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow', 
+      mobileView === 'contacts' ? 'hidden md:flex' : 'flex'
+    )}
+    >
+      <header className="flex justify-between w-full pb-2 md:pb-3 lg:pb-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="addon"
+            aria-label="Back to contacts"
+            onClick={goBackToContacts}
+            className="md:hidden"
+          >
+            <ArrowLeft aria-hidden="true" />
+          </Button>
+          <User user={companion} variant="chatWindow">
+            <User.Avatar />
+            <User.Info>
+              <User.Username />
+              <User.LastSeen />
+            </User.Info>
+          </User>
+        </div>
 
         <ChatActions />
-      </div>
+      </header>
       <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 scrollbar-thin">
         {isLoading && (
           <p className="text-sm text-chat-text-muted text-center py-4">
@@ -179,6 +211,7 @@ export function ChatWindow() {
               </Message>
             );
           })}
+        <div ref={messagesEndRef} />
       </div>
 
       <MessageInput
