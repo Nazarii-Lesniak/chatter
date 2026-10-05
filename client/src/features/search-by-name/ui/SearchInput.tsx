@@ -93,11 +93,11 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
   const showDropdown = query.trim().length >= MIN_QUERY_LENGTH;
 
   return (
-    <div className="relative hidden md:hidden lg:flex lg:flex-col lg:w-full">
+    <div className="relative flex flex-col w-full">
       <Input.Root variant="search">
         <Input.Icon>
-          <Button variant="search" type="button">
-            <SearchIcon aria-label="Search" />
+          <Button variant="search" type="button" aria-label="Search">
+            <SearchIcon aria-hidden="true" />
           </Button>
         </Input.Icon>
         <Input.Field

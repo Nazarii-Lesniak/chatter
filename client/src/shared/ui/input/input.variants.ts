@@ -6,11 +6,11 @@ export const inputVariants = cva(
     variants: {
       variant: {
         search: [
-          'hidden md:hidden lg:flex lg:w-full',
-          'h-8 md:h-10 lg:h-12',
+          'flex w-full',
+          'h-10 md:h-10 lg:h-12',
           'px-2 md:px-3 lg:px-4',
-          'gap-2 md:gap-2 lg:gap-3',
-          'text-sm md:text-sm lg:text-sm',
+          'gap-2 lg:gap-3',
+          'text-sm',
           'tracking-wider',
           'text-chat-text-muted placeholder:text-chat-text-muted',
           'bg-white',
