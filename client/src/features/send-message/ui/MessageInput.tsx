@@ -38,12 +38,13 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   return (
     <Input.Root variant="message">
       <Input.Icon>
-        <Button variant="addon">
-          <PaperclipIcon aria-label="Attach file" />
+        <Button variant="addon" aria-label="Attach file">
+          <PaperclipIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
 
       <Input.Textarea
+        aria-label="Type your message"
         placeholder="Type your message here..."
         value={value}
         onChange={handleChange}
@@ -52,13 +53,13 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
       />
 
       <Input.Icon>
-        <Button variant="addon">
-          <SmileIcon aria-label="Select Emoji" />
+        <Button variant="addon" aria-label="Select Emoji">
+          <SmileIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
       <Input.Icon>
-        <Button variant="addon">
-          <CameraIcon aria-label="Select photo" />
+        <Button variant="addon" aria-label="Select photo">
+          <CameraIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
     </Input.Root>

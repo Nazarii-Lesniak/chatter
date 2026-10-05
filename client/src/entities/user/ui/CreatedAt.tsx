@@ -16,7 +16,11 @@ export function CreatedAt({ className, ...props }: ComponentProps<'time'>) {
   const { user, variant } = useUserContext();
 
   return (
-    <time className={cn(CreatedAtVariants({ variant }), className)} {...props}>
+    <time
+      dateTime={user.createdAt}
+      className={cn(CreatedAtVariants({ variant }), className)}
+      {...props}
+    >
       {user.createdAt}
     </time>
   );
