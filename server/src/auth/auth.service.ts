@@ -62,7 +62,7 @@ export class AuthService {
       },
       env.jwtSecret,
       {
-        expiresIn: '15m',
+        expiresIn: '30d',
       },
     );
   }
