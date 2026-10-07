@@ -7,6 +7,7 @@ import { useConversationStore } from '@/entities/conversation/conversation.store
 import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
 import { SearchInput } from '@/features/search-by-name';
+import { cn } from '@/shared/lib/class-merge';
 import { Button } from '@/shared/ui/button/Button';
 
 interface ChatListProps {
@@ -47,9 +48,12 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
 
   return (
     <div
-      className={`flex flex-col w-full gap-5 md:w-80 xl:w-96 md:shrink-0 ${
-        mobileView === 'chat' ? 'hidden md:flex' : 'flex'
-      }`}
+      className={cn(
+        'flex flex-col w-full gap-5 md:w-80 xl:w-96 md:shrink-0',
+        mobileView === 'chat'
+          ? 'hidden md:flex'
+          : 'flex animate-slide-in-left md:animate-none',
+      )}
     >
       <div className="flex items-center gap-2">
         <Button
@@ -65,7 +69,7 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
         />
       </div>
 
-      <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 flex flex-col gap-4 p-4 rounded-3xl bg-white shadow-input-glow">
+      <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 flex flex-col gap-4 p-4 rounded-3xl bg-white shadow-input-glow flex-1 overflow-y-auto custom-scrollbar">
         <h2 className="text-base md:text-lg font-semibold">People</h2>
 
         {isLoading && (
@@ -99,10 +103,15 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
         {!isLoading &&
           !error &&
           conversations.map((conversation) => {
+            const lastActivityTime =
+              conversation.lastMessage?.createdAt ??
+              conversation.updatedAt ??
+              conversation.createdAt;
+
             const user: UserType = {
               id: conversation.participant.id,
               username: conversation.participant.username,
-              createdAt: conversation.participant.createdAt,
+              createdAt: lastActivityTime,
               status: 'offline',
               lastMessage: conversation.lastMessage?.content,
             };
