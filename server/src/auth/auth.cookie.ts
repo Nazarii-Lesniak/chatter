@@ -28,7 +28,7 @@ export function createAccessTokenCookie(token: string): string {
     isProduction ? 'SameSite=None' : 'SameSite=Lax',
     'HttpOnly',
     'Path=/',
-    'Max-Age=900',
+    'Max-Age=2592000',
   ];
 
   return parts.filter(Boolean).join('; ');

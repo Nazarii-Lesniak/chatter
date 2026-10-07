@@ -155,12 +155,43 @@ export function ChatWindow() {
     [activeConversationId, send],
   );
 
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleScroll = useCallback(() => {
+    setIsScrolling(true);
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    const _count = messages.length;
+
+    const timeoutId = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [messages, isLoading]);
+
   if (!activeConversation) {
     return (
       <div
         className={cn(
           'flex flex-col w-full h-full p-3 md:p-5 lg:p-6 rounded-2xl md:rounded-3xl bg-white items-center justify-center shadow-input-glow',
-          mobileView === 'contacts' ? 'hidden md:flex' : 'flex',
+          mobileView === 'contacts'
+            ? 'hidden md:flex'
+            : 'flex animate-slide-in-right md:animate-none',
         )}
       >
         <p className="text-sm text-chat-text-muted">
@@ -185,10 +216,12 @@ export function ChatWindow() {
     <div
       className={cn(
         'flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow',
-        mobileView === 'contacts' ? 'hidden md:flex' : 'flex',
+        mobileView === 'contacts'
+          ? 'hidden md:flex'
+          : 'flex animate-slide-in-right md:animate-none',
       )}
     >
-      <header className="flex justify-between w-full pb-2 md:pb-3 lg:pb-4">
+      <header className="flex justify-between w-full pb-3 md:pb-4 border-b border-chat-background">
         <div className="flex items-center gap-2">
           <Button
             variant="addon"
@@ -209,7 +242,13 @@ export function ChatWindow() {
 
         <ChatActions />
       </header>
-      <div className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 scrollbar-thin">
+      <div
+        onScroll={handleScroll}
+        className={cn(
+          'flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 custom-scrollbar',
+          isScrolling && 'is-scrolling',
+        )}
+      >
         {isLoading && (
           <p className="text-sm text-chat-text-muted text-center py-4">
             Loading messages...
