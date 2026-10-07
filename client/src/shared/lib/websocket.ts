@@ -35,6 +35,19 @@ export type ServerWebSocketEvent =
       };
     }
   | {
+      type: 'presence:initial';
+      payload: {
+        onlineUserIds: string[];
+      };
+    }
+  | {
+      type: 'user:status';
+      payload: {
+        userId: string;
+        status: 'online' | 'offline';
+      };
+    }
+  | {
       type: 'error';
       payload: {
         code: string;

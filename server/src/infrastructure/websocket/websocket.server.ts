@@ -40,6 +40,7 @@ export function attachWebSocketServer(
   });
 
   const conversationSockets = new Map<string, Set<WebSocket>>();
+  const userSockets = new Map<string, Set<WebSocket>>();
 
   function subscribeToConversation(conversationId: string, socket: WebSocket) {
     let sockets = conversationSockets.get(conversationId);
@@ -95,6 +96,53 @@ export function attachWebSocketServer(
         sendEvent(socket, event);
       }
     }
+  }
+
+  function broadcastToAll(
+    event: ServerWebSocketEvent,
+    excludeSocket?: WebSocket,
+  ) {
+    for (const clientSocket of wss.clients) {
+      if (
+        clientSocket !== excludeSocket &&
+        clientSocket.readyState === WebSocket.OPEN
+      ) {
+        sendEvent(clientSocket, event);
+      }
+    }
+  }
+
+  function subscribeUser(userId: string, socket: WebSocket): boolean {
+    let sockets = userSockets.get(userId);
+    let isFirst = false;
+
+    if (!sockets) {
+      sockets = new Set<WebSocket>();
+      userSockets.set(userId, sockets);
+      isFirst = true;
+    }
+
+    sockets.add(socket);
+
+    return isFirst;
+  }
+
+  function unsubscribeUser(userId: string, socket: WebSocket): boolean {
+    const sockets = userSockets.get(userId);
+
+    if (!sockets) {
+      return false;
+    }
+
+    sockets.delete(socket);
+
+    if (sockets.size === 0) {
+      userSockets.delete(userId);
+
+      return true;
+    }
+
+    return false;
   }
 
   httpServer.on('upgrade', async (request, socket, head) => {
@@ -164,6 +212,23 @@ export function attachWebSocketServer(
         payload: {
           path: request.url ?? '/',
         },
+      });
+
+      const isFirstConnection = subscribeUser(client.userId, socket);
+
+      if (isFirstConnection) {
+        broadcastToAll(
+          {
+            type: 'user:status',
+            payload: { userId: client.userId, status: 'online' },
+          },
+          socket,
+        );
+      }
+
+      sendEvent(socket, {
+        type: 'presence:initial',
+        payload: { onlineUserIds: Array.from(userSockets.keys()) },
       });
 
       socket.on('message', async (data) => {
@@ -294,6 +359,15 @@ export function attachWebSocketServer(
 
       socket.on('close', () => {
         unsubscribeFromAllConversation(socket);
+
+        const isLastConnection = unsubscribeUser(client.userId, socket);
+
+        if (isLastConnection) {
+          broadcastToAll({
+            type: 'user:status',
+            payload: { userId: client.userId, status: 'offline' },
+          });
+        }
       });
     },
   );

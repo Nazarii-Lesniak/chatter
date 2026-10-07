@@ -20,7 +20,9 @@ export class InMemoryMessageRepository implements MessageRepository {
       .sort((first, second) => first.createdAt.localeCompare(second.createdAt));
   }
 
-  async findLastMessageByConversationId(conversationId: string): Promise<Message | null> {
+  async findLastMessageByConversationId(
+    conversationId: string,
+  ): Promise<Message | null> {
     const messages = await this.findByConversationId(conversationId);
 
     return messages.length > 0 ? messages[messages.length - 1] : null;
