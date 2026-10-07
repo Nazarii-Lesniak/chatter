@@ -1,21 +1,30 @@
 import { create } from 'zustand';
 import { conversationsApi } from '@/shared/api/conversations';
-import type { Conversation } from './conversation.types';
+import type { Conversation, ConversationMessage } from './conversation.types';
+
+type MobileView = 'contacts' | 'chat';
 
 interface ConversationState {
   conversations: Conversation[];
   activeConversationId: string | null;
+  mobileView: MobileView;
   isLoading: boolean;
   error: string | null;
 
   fetchConversations: () => Promise<void>;
   selectConversation: (conversationId: string) => void;
+  goBackToContacts: () => void;
   createConversation: (recipientId: string) => Promise<void>;
+  updateLastMessage: (
+    conversationId: string,
+    message: ConversationMessage,
+  ) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
   conversations: [],
   activeConversationId: null,
+  mobileView: 'contacts',
   isLoading: false,
   error: null,
 
@@ -53,7 +62,11 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
   },
 
   selectConversation: (conversationId) => {
-    set({ activeConversationId: conversationId });
+    set({ activeConversationId: conversationId, mobileView: 'chat' });
+  },
+
+  goBackToContacts: () => {
+    set({ activeConversationId: null, mobileView: 'contacts' });
   },
 
   createConversation: async (recipientId) => {
@@ -81,5 +94,19 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
             : 'Failed to create conversation',
       });
     }
+  },
+
+  updateLastMessage: (conversationId, message) => {
+    set((state) => ({
+      conversations: state.conversations.map((conversation) =>
+        conversation.id === conversationId
+          ? {
+              ...conversation,
+              lastMessage: message,
+              updatedAt: message.createdAt,
+            }
+          : conversation,
+      ),
+    }));
   },
 }));

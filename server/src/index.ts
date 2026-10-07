@@ -27,6 +27,7 @@ const messageService = new MessageService(
 const conversationService = new ConversationService(
   conversationRepository,
   userRepository,
+  messageRepository,
 );
 
 const app = createApp(
@@ -44,9 +45,9 @@ attachWebSocketServer(
   conversationRepository,
 );
 
-export default httpServer;
+const HOST = '0.0.0.0';
 
-httpServer.listen(env.port, () => {
+httpServer.listen(env.port, HOST, () => {
   console.log(`Chatter server is running on http://localhost:${env.port}`);
   console.log(`WebSocket endpoint: ws://localhost:${env.port}${env.wsPath}`);
 });

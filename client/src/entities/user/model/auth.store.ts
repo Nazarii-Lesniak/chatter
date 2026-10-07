@@ -10,6 +10,7 @@ interface AuthState {
   setUser: (user: AuthUser) => void;
   clearUser: () => void;
   initializeAuth: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -25,6 +26,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       set({ user, status: 'authenticated' });
     } catch {
+      set({ user: null, status: 'unauthenticated' });
+    }
+  },
+
+  logout: async () => {
+    try {
+      await authApi.logout();
+    } catch {
+    } finally {
       set({ user: null, status: 'unauthenticated' });
     }
   },

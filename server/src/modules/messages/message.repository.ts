@@ -4,4 +4,7 @@ export interface MessageRepository {
   create(message: Message): Promise<Message>;
   findById(id: string): Promise<Message | null>;
   findByConversationId(conversationId: string): Promise<Message[]>;
+  findLastMessageByConversationId(
+    conversationId: string,
+  ): Promise<Message | null>;
 }

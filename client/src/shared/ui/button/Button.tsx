@@ -7,10 +7,16 @@ interface IRoot extends ComponentProps<'button'> {
   children?: React.ReactNode;
 }
 
-export function Button({ className, variant, children, ...props }: IRoot) {
+export function Button({
+  className,
+  variant,
+  children,
+  type = 'button',
+  ...props
+}: IRoot) {
   return (
     <button
-      type="button"
+      type={type}
       className={buttonVariants({ variant, className })}
       {...props}
     >

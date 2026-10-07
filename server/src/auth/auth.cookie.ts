@@ -20,11 +20,32 @@ export function getCookie(
 }
 
 export function createAccessTokenCookie(token: string): string {
-  return [
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const parts = [
     `access_token=${encodeURIComponent(token)}`,
+    isProduction && 'Secure',
+    isProduction ? 'SameSite=None' : 'SameSite=Lax',
     'HttpOnly',
     'Path=/',
-    'SameSite=Lax',
-    'MaxAge=900',
-  ].join('; ');
+    'Max-Age=900',
+  ];
+
+  return parts.filter(Boolean).join('; ');
+}
+
+export function createClearAccessTokenCookie(): string {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const parts = [
+    'access_token=',
+    isProduction && 'Secure',
+    isProduction ? 'SameSite=None' : 'SameSite=Lax',
+    'HttpOnly',
+    'Path=/',
+    'Max-Age=0',
+    'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+  ];
+
+  return parts.filter(Boolean).join('; ');
 }
