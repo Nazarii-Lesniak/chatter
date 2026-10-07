@@ -3,14 +3,27 @@ import {
   createAccessTokenCookie,
   createClearAccessTokenCookie,
 } from './auth.cookie';
-import type { createAuthMiddleware } from './auth.middleware';
+import type {
+  AuthenticatedRequest,
+  createAuthMiddleware,
+} from './auth.middleware';
 import type { AuthService } from './auth.service';
 
 export function createAuthRouter(
   authService: AuthService,
-  _authMiddleware: ReturnType<typeof createAuthMiddleware>,
+  authMiddleware: ReturnType<typeof createAuthMiddleware>,
 ) {
   const router = Router();
+
+  router.post('/ws-ticket', authMiddleware, (request, response) => {
+    const authenticatedRequest = request as AuthenticatedRequest;
+
+    const ticket = authService.createWebSocketTicket(
+      authenticatedRequest.userId,
+    );
+
+    response.status(200).json({ ticket });
+  });
 
   router.post('/register', async (request, response) => {
     try {
