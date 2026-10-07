@@ -45,9 +45,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
 
       set({
         conversations,
-        activeConversationId: activeConversationExists
-          ? currentActiveId
-          : (conversations[0]?.id ?? null),
+        activeConversationId: activeConversationExists ? currentActiveId : null,
         isLoading: false,
       });
     } catch (error) {
