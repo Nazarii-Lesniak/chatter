@@ -45,7 +45,9 @@ attachWebSocketServer(
   conversationRepository,
 );
 
-httpServer.listen(env.port, () => {
+const HOST = '0.0.0.0';
+
+httpServer.listen(env.port, HOST, () => {
   console.log(`Chatter server is running on http://localhost:${env.port}`);
   console.log(`WebSocket endpoint: ws://localhost:${env.port}${env.wsPath}`);
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeft } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useConversationStore } from '@/entities/conversation/conversation.store';
 import { Message } from '@/entities/message';
 import { useMessageStore } from '@/entities/message/model/message.store';
@@ -36,16 +36,48 @@ export function ChatWindow() {
   const appendMessage = useMessageStore((state) => state.appendMessage);
   const setError = useMessageStore((state) => state.setError);
 
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+
   const activeConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId,
+  );
+
+  const updateLastMessage = useConversationStore(
+    (state) => state.updateLastMessage,
   );
 
   const handleWebSocketEvent = useCallback(
     (event: ServerWebSocketEvent) => {
       if (event.type === 'message:new') {
+        updateLastMessage(
+          event.payload.message.conversationId,
+          event.payload.message,
+        );
+
         if (event.payload.message.conversationId === activeConversationId) {
           appendMessage(event.payload.message);
         }
+        return;
+      }
+
+      if (event.type === 'presence:initial') {
+        setOnlineUserIds(new Set(event.payload.onlineUserIds));
+
+        return;
+      }
+
+      if (event.type === 'user:status') {
+        setOnlineUserIds((prev) => {
+          const newSet = new Set(prev);
+
+          if (event.payload.status === 'online') {
+            newSet.add(event.payload.userId);
+          } else {
+            newSet.delete(event.payload.userId);
+          }
+
+          return newSet;
+        });
 
         return;
       }
@@ -54,7 +86,7 @@ export function ChatWindow() {
         setError(event.payload.message);
       }
     },
-    [activeConversationId, appendMessage, setError],
+    [activeConversationId, appendMessage, setError, updateLastMessage],
   );
 
   const { status: webSocketStatus, send } = useChatWebSocket(
@@ -138,18 +170,23 @@ export function ChatWindow() {
     );
   }
 
+  const isCompanionOnline = onlineUserIds.has(
+    activeConversation.participant.id,
+  );
+
   const companion: UserType = {
     id: activeConversation.participant.id,
     username: activeConversation.participant.username,
     createdAt: activeConversation.participant.createdAt,
-    status: 'offline',
+    status: isCompanionOnline ? 'online' : 'offline',
   };
 
   return (
     <div
-      className={cn('flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow', 
-      mobileView === 'contacts' ? 'hidden md:flex' : 'flex'
-    )}
+      className={cn(
+        'flex flex-col w-full h-full p-3 gap-3 rounded-2xl flex-1 md:p-5 md:gap-4 md:rounded-3xl lg:p-6 lg:gap-6 lg:rounded-3xl lg:flex-1 bg-white items-stretch justify-between max-w-full shadow-input-glow',
+        mobileView === 'contacts' ? 'hidden md:flex' : 'flex',
+      )}
     >
       <header className="flex justify-between w-full pb-2 md:pb-3 lg:pb-4">
         <div className="flex items-center gap-2">

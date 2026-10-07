@@ -113,7 +113,9 @@ export class ConversationService {
     }
 
     const lastMessage = this.messageRepository
-      ? await this.messageRepository.findLastMessageByConversationId(conversation.id)
+      ? await this.messageRepository.findLastMessageByConversationId(
+          conversation.id,
+        )
       : null;
 
     return {

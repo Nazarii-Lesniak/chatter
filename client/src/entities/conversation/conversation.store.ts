@@ -15,7 +15,10 @@ interface ConversationState {
   selectConversation: (conversationId: string) => void;
   goBackToContacts: () => void;
   createConversation: (recipientId: string) => Promise<void>;
-  updateLastMessage: (conversationId: string, message: ConversationMessage) => void;
+  updateLastMessage: (
+    conversationId: string,
+    message: ConversationMessage,
+  ) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
