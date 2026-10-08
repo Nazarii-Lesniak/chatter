@@ -9,6 +9,7 @@ import type { UserType } from '@/entities/user/model/types';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 import { MessageInput } from '@/features/send-message';
 import { cn } from '@/shared/lib/class-merge';
+import { useAutoScroll } from '@/shared/lib/hooks/useAutoScroll';
 import {
   type ServerWebSocketEvent,
   useChatWebSocket,
@@ -35,6 +36,11 @@ export function ChatWindow() {
   const setError = useMessageStore((state) => state.setError);
 
   const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
+
+  const { isScrolling, messagesEndRef, handleScroll } = useAutoScroll({
+    messages,
+    isLoading,
+  });
 
   const activeConversation = conversations.find(
     (conversation) => conversation.id === activeConversationId,
@@ -130,12 +136,6 @@ export function ChatWindow() {
     fetchMessages(activeConversationId);
   }, [activeConversationId, fetchMessages]);
 
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
   const handleSendMessage = useCallback(
     (content: string) => {
       if (!activeConversationId) {
@@ -152,35 +152,6 @@ export function ChatWindow() {
     },
     [activeConversationId, send],
   );
-
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleScroll = useCallback(() => {
-    setIsScrolling(true);
-
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
-
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false);
-    }, 1000);
-  }, []);
-
-  useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    const _count = messages.length;
-
-    const timeoutId = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [messages, isLoading]);
 
   if (!activeConversation) {
     return (
