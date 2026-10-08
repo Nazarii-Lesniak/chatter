@@ -1,17 +1,10 @@
-import type { Conversation } from '@/entities/conversation/conversation.types';
+import type {
+  Conversation,
+  ConversationResponse,
+  ConversationsResponse,
+  CreateConversationInput,
+} from '@/shared/api/types/conversation.types';
 import { apiClient } from './api-client';
-
-export interface ConversationResponse {
-  conversation: Conversation;
-}
-
-export interface ConversationsResponse {
-  conversations: Conversation[];
-}
-
-export interface CreateConversationInput {
-  recipientId: string;
-}
 
 export const conversationsApi = {
   async create(input: CreateConversationInput): Promise<Conversation> {

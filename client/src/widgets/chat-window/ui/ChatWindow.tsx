@@ -2,11 +2,9 @@
 
 import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useConversationStore } from '@/entities/conversation/conversation.store';
-import { Message } from '@/entities/message';
-import { useMessageStore } from '@/entities/message/model/message.store';
-import { User } from '@/entities/user';
-import { useAuthStore } from '@/entities/user/model/auth.store';
+import { useConversationStore } from '@/entities/conversation';
+import { Message, useMessageStore } from '@/entities/message';
+import { User, useAuthStore } from '@/entities/user';
 import type { UserType } from '@/entities/user/model/types';
 import { ChatActions } from '@/features/chat-actions/ui/ChatActions';
 import { MessageInput } from '@/features/send-message';

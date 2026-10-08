@@ -3,7 +3,7 @@
 import { PanelLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useConversationStore } from '@/entities/conversation/conversation.store';
+import { useConversationStore } from '@/entities/conversation';
 import type { UserType } from '@/entities/user/model/types';
 import { User } from '@/entities/user/ui';
 import { SearchInput } from '@/features/search-by-name';
