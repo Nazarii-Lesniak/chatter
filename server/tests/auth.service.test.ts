@@ -105,7 +105,9 @@ describe('AuthService', () => {
     });
 
     it('rejects a WebSocket ticket', () => {
-      expect(service.verifyAccessToken(service.createWebSocketTicket(aliceId))).toBeNull();
+      expect(
+        service.verifyAccessToken(service.createWebSocketTicket(aliceId)),
+      ).toBeNull();
     });
   });
 
