@@ -48,12 +48,12 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS');
     }
 
-    const passwordMathes = await bcrypt.compare(
+    const passwordMatches = await bcrypt.compare(
       input.password,
       user.passwordHash,
     );
 
-    if (!passwordMathes) {
+    if (!passwordMatches) {
       throw new Error('INVALID_CREDENTIALS');
     }
 
