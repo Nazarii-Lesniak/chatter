@@ -1,6 +1,7 @@
 # Chatter — Real-Time Chat Application
 
 [![Live Demo on Vercel](https://img.shields.io/badge/Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://chatter-app-io.vercel.app)
+[![CI](https://img.shields.io/github/actions/workflow/status/Nazarii-Lesniak/chatter/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/Nazarii-Lesniak/chatter/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
@@ -276,6 +277,31 @@ npm run build:client
 
 ---
 
+## 🧪 Testing & CI
+
+```bash
+npm test            # server tests (Vitest)
+npm run typecheck   # type-check server sources and tests
+npm run lint        # Biome
+```
+
+The server tests run against the in-memory repositories, so **no database is needed**. They cover:
+
+- **`AuthService`** — registration, login, bcrypt hashing, the JWT access token and the 60-second WebSocket ticket lifecycle
+- **Rate limiting** — the real Express auth router, including "successful logins are not counted" and "one locked username does not affect others"
+- **Auth middleware** — including a regression test that a WebSocket ticket can never be used as an access token
+- **WebSocket protocol** — runtime validation of every client event
+
+**GitHub Actions** ([`ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request to `main` and `staging`:
+
+| Job | What it checks |
+| --- | --- |
+| Lint | Biome (lint + formatting) |
+| Server | type-check (sources and tests), build, tests |
+| Client | production build, which also type-checks the app |
+
+---
+
 ## ☁️ Deployment
 
 | Part | Platform | Notes |
@@ -297,6 +323,6 @@ npm run build:client
 - [ ] Refresh tokens and server-side session revocation (logout currently only clears the cookie)
 - [ ] `SameSite=Lax` cookie, now that all browser traffic is same-origin
 - [ ] Message pagination (the full history of a conversation is loaded at once)
-- [ ] Automated tests and CI
+- [ ] Client tests (Vitest + Testing Library) and end-to-end tests (Playwright)
 
 ---
