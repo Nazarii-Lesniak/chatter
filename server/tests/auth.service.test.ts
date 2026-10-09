@@ -103,6 +103,10 @@ describe('AuthService', () => {
 
       expect(service.verifyAccessToken(expired)).toBeNull();
     });
+
+    it('rejects a WebSocket ticket', () => {
+      expect(service.verifyAccessToken(service.createWebSocketTicket(aliceId))).toBeNull();
+    });
   });
 
   describe('WebSocket ticket', () => {
