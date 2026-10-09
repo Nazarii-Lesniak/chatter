@@ -1,8 +1,9 @@
 'use client';
-import type { Conversation } from '@/shared/api/types/conversation.types';
-import type { UserType } from '@/entities/user/model/types';
-import { User } from '@/entities/user';
+
 import { useConversationStore } from '@/entities/conversation';
+import { User } from '@/entities/user';
+import type { UserType } from '@/entities/user/model/types';
+import type { Conversation } from '@/shared/api/types/conversation.types';
 import { cn } from '@/shared/lib/class-merge';
 
 interface ConversationListItemProps {
