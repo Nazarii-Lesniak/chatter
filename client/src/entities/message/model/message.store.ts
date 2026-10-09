@@ -42,9 +42,19 @@ export const useMessageStore = create<MessageState>((set) => ({
   },
 
   appendMessage: (message) => {
-    set((state) => ({
-      messages: [...state.messages, message],
-    }));
+    set((state) => {
+      const isDuplicate = state.messages.some(
+        (messageState) => messageState.id === message.id,
+      );
+
+      if (isDuplicate) {
+        return state;
+      }
+
+      return {
+        messages: [...state.messages, message],
+      };
+    });
   },
 
   setError: (error) => {

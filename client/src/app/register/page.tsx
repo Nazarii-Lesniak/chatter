@@ -1,4 +1,4 @@
-import { AuthCardLayout } from '@/features/auth/ui/AuthCardLayout';
+import { AuthCardLayout } from '@/features/auth';
 import { AuthForm } from '@/features/auth/ui/AuthForm';
 
 export default function RegisterPage() {

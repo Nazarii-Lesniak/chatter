@@ -19,3 +19,15 @@ export interface Conversation {
   participant: ConversationParticipant;
   lastMessage?: ConversationMessage | null;
 }
+
+export interface ConversationResponse {
+  conversation: Conversation;
+}
+
+export interface ConversationsResponse {
+  conversations: Conversation[];
+}
+
+export interface CreateConversationInput {
+  recipientId: string;
+}

@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { conversationsApi } from '@/shared/api/conversations';
-import type { Conversation, ConversationMessage } from './conversation.types';
+import type {
+  Conversation,
+  ConversationMessage,
+} from '@/shared/api/types/conversation.types';
 
 type MobileView = 'contacts' | 'chat';
 

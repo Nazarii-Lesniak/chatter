@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { type SubmitEvent, useState } from 'react';
-import { useAuthStore } from '@/entities/user/model/auth.store';
+import { useAuthStore } from '@/entities/user';
 import { authApi } from '@/shared/api/auth.api';
 import { Button } from '@/shared/ui/button/Button';
 import { Input } from '@/shared/ui/input/Input';
