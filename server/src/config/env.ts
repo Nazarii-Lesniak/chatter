@@ -10,6 +10,16 @@ function getPort(value: string | undefined): number {
   return port;
 }
 
+function getTrustProxy(value: string | undefined): number {
+  const hops = Number(value ?? 0);
+
+  if (!Number.isInteger(hops) || hops < 0) {
+    throw new Error('TRUST_PROXY must be a non-negative integer');
+  }
+
+  return hops;
+}
+
 function getRequiredEnv(value: string | undefined, name: string): string {
   if (!value) {
     throw new Error(`${name} is required`);
@@ -22,6 +32,7 @@ export const env = {
   port: getPort(process.env.PORT),
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
   wsPath: '/ws',
+  trustProxy: getTrustProxy(process.env.TRUST_PROXY),
   jwtSecret: getRequiredEnv(process.env.JWT_SECRET, 'JWT_SECRET'),
   databaseUrl: getRequiredEnv(process.env.DATABASE_URL, 'DATABASE_URL'),
 } as const;

@@ -7,6 +7,7 @@ import type {
   AuthenticatedRequest,
   createAuthMiddleware,
 } from './auth.middleware';
+import { loginRateLimiter, registerRateLimiter } from './auth.rate-limit';
 import type { AuthService } from './auth.service';
 
 export function createAuthRouter(
@@ -25,7 +26,7 @@ export function createAuthRouter(
     response.status(200).json({ ticket });
   });
 
-  router.post('/register', async (request, response) => {
+  router.post('/register', registerRateLimiter, async (request, response) => {
     try {
       const { username, password } = request.body;
 
@@ -53,7 +54,7 @@ export function createAuthRouter(
     }
   });
 
-  router.post('/login', async (request, response) => {
+  router.post('/login', loginRateLimiter, async (request, response) => {
     try {
       const { username, password } = request.body;
 
