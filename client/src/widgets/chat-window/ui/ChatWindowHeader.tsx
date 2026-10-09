@@ -3,14 +3,16 @@ import { useConversationStore } from '@/entities/conversation';
 import { User } from '@/entities/user';
 import { ChatActions } from '@/features/chat-actions';
 import { Button } from '@/shared/ui/button/Button';
-import { useChatRoom } from '../model/useChatRoom';
+import type { useChatRoom } from '../model/useChatRoom';
 
-export function ChatWindowHeader() {
+type ChatWindowHeaderProps = {
+  companion: ReturnType<typeof useChatRoom>['companion'];
+};
+
+export function ChatWindowHeader({ companion }: ChatWindowHeaderProps) {
   const goBackToContacts = useConversationStore(
     (state) => state.goBackToContacts,
   );
-
-  const { companion } = useChatRoom();
 
   if (!companion) {
     return null;
@@ -27,6 +29,7 @@ export function ChatWindowHeader() {
         >
           <ArrowLeft aria-hidden="true" />
         </Button>
+
         <User user={companion} variant="chatWindow">
           <User.Avatar />
           <User.Info>
