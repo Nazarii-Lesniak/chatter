@@ -1,8 +1,8 @@
 'use client';
 
 import { useConversationStore } from '@/entities/conversation';
+import type { UserType } from '@/entities/user';
 import { User } from '@/entities/user';
-import type { UserType } from '@/entities/user/model/types';
 import type { Conversation } from '@/shared/api/types/conversation.types';
 import { cn } from '@/shared/lib/class-merge';
 

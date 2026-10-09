@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { UserContextProps } from '../model/types';
+import type { UserContextProps } from '@/entities/user';
 
 export const UserContext = createContext<UserContextProps | null>(null);
 
