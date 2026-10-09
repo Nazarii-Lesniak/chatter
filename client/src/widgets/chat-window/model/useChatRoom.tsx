@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useConversationStore } from '@/entities/conversation';
 import { useMessageStore } from '@/entities/message';
+import type { UserType } from '@/entities/user';
 import { useAuthStore } from '@/entities/user';
-import type { UserType } from '@/entities/user/model/types';
 import {
   type ServerWebSocketEvent,
   useChatWebSocket,

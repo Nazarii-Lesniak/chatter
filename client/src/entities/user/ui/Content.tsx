@@ -1,8 +1,8 @@
 'use client';
 
 import type { ComponentProps } from 'react';
+import type { UserContextProps } from '@/entities/user';
 import { cn } from '@/shared/lib/class-merge';
-import type { UserContextProps } from '../model/types';
 import { UserContext } from './UserContext';
 
 export function UserContent({

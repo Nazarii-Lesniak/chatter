@@ -1,12 +1,21 @@
 import { Message } from '@/entities/message';
 import { useAuthStore } from '@/entities/user';
+import type { Message as MessageType } from '@/shared/api/messages';
 import { cn } from '@/shared/lib/class-merge';
 import { useAutoScroll } from '@/shared/lib/hooks/useAutoScroll';
-import { useChatRoom } from '../model/useChatRoom';
 
-export function ChatMessagesList() {
+interface ChatMessagesListProps {
+  messages: MessageType[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+export function ChatMessagesList({
+  messages,
+  isLoading,
+  error,
+}: ChatMessagesListProps) {
   const currentUser = useAuthStore((state) => state.user);
-  const { messages, isLoading, error } = useChatRoom();
 
   const { handleScroll, isScrolling, messagesEndRef } = useAutoScroll({
     messages,
@@ -50,6 +59,7 @@ export function ChatMessagesList() {
               <Message.Bubble variant={isOwn ? 'own' : 'companion'}>
                 {message.content}
               </Message.Bubble>
+
               <Message.Timestamp>
                 {new Date(message.createdAt).toLocaleTimeString([], {
                   hour: '2-digit',
@@ -59,6 +69,7 @@ export function ChatMessagesList() {
             </Message>
           );
         })}
+
       <div ref={messagesEndRef} />
     </div>
   );

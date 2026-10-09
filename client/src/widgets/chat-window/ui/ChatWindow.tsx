@@ -1,13 +1,25 @@
 'use client';
 
 import { useConversationStore } from '@/entities/conversation';
+import { MessageInput } from '@/features/send-message';
 import { cn } from '@/shared/lib/class-merge';
-import { ChatMessageInput } from './ChatMessageInput';
+import { useChatRoom } from '../model/useChatRoom';
+import { ChatEmptyState } from './ChatEmptyState';
 import { ChatMessagesList } from './ChatMessagesList';
 import { ChatWindowHeader } from './ChatWindowHeader';
 
 export function ChatWindow() {
   const mobileView = useConversationStore((state) => state.mobileView);
+
+  const {
+    activeConversation,
+    companion,
+    messages,
+    isLoading,
+    error,
+    sendMessage,
+    isConnected,
+  } = useChatRoom();
 
   return (
     <div
@@ -18,9 +30,19 @@ export function ChatWindow() {
           : 'flex animate-slide-in-right md:animate-none',
       )}
     >
-      <ChatWindowHeader />
-      <ChatMessagesList />
-      <ChatMessageInput />
+      <ChatWindowHeader companion={companion} />
+
+      <ChatMessagesList
+        messages={messages}
+        isLoading={isLoading}
+        error={error}
+      />
+
+      {activeConversation ? (
+        <MessageInput onSend={sendMessage} disabled={!isConnected} />
+      ) : (
+        <ChatEmptyState isMobileView={mobileView === 'contacts'} />
+      )}
     </div>
   );
 }
