@@ -79,7 +79,8 @@ export class AuthService {
       if (
         typeof payload !== 'object' ||
         payload === null ||
-        typeof payload.userId !== 'string'
+        typeof payload.userId !== 'string' ||
+        payload.type !== undefined
       ) {
         return null;
       }
