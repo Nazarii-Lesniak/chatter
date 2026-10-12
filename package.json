@@ -12,7 +12,9 @@
     "build:client": "npm --workspace=client run build",
     "build:server": "npm --workspace=server run build",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "test": "npm --workspace=server run test",
+    "typecheck": "npm --workspace=server run typecheck"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.2"

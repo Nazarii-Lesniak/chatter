@@ -3,16 +3,30 @@ import {
   createAccessTokenCookie,
   createClearAccessTokenCookie,
 } from './auth.cookie';
-import type { createAuthMiddleware } from './auth.middleware';
+import type {
+  AuthenticatedRequest,
+  createAuthMiddleware,
+} from './auth.middleware';
+import { loginRateLimiter, registerRateLimiter } from './auth.rate-limit';
 import type { AuthService } from './auth.service';
 
 export function createAuthRouter(
   authService: AuthService,
-  _authMiddleware: ReturnType<typeof createAuthMiddleware>,
+  authMiddleware: ReturnType<typeof createAuthMiddleware>,
 ) {
   const router = Router();
 
-  router.post('/register', async (request, response) => {
+  router.post('/ws-ticket', authMiddleware, (request, response) => {
+    const authenticatedRequest = request as AuthenticatedRequest;
+
+    const ticket = authService.createWebSocketTicket(
+      authenticatedRequest.userId,
+    );
+
+    response.status(200).json({ ticket });
+  });
+
+  router.post('/register', registerRateLimiter, async (request, response) => {
     try {
       const { username, password } = request.body;
 
@@ -40,7 +54,7 @@ export function createAuthRouter(
     }
   });
 
-  router.post('/login', async (request, response) => {
+  router.post('/login', loginRateLimiter, async (request, response) => {
     try {
       const { username, password } = request.body;
 

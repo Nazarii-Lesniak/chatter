@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { apiClient } from '@/shared/api/api-client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export type ClientWebSocketEvent =
+  | { type: 'system:ping' }
   | { type: 'conversation:join'; payload: { conversationId: string } }
   | { type: 'conversation:leave'; payload: { conversationId: string } }
   | {
@@ -57,12 +59,24 @@ export type ServerWebSocketEvent =
 
 export type WebSocketStatus = 'closed' | 'connecting' | 'open' | 'error';
 
-function getSocketUrl() {
+const HEARTBEAT_INTERVAL_MS = 25_000;
+const MAX_RECONNECT_DELAY_MS = 15_000;
+
+async function fetchWebSocketTicket(): Promise<string> {
+  const { ticket } = await apiClient<{ ticket: string }>('/auth/ws-ticket', {
+    method: 'POST',
+  });
+
+  return ticket;
+}
+
+function getSocketUrl(ticket: string) {
   const base = API_URL || 'http://localhost:3001';
 
   const url = new URL('/ws', base);
 
   url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  url.searchParams.set('ticket', ticket);
 
   return url.toString();
 }
@@ -104,33 +118,99 @@ export function useChatWebSocket(
       return;
     }
 
-    const socket = new WebSocket(getSocketUrl());
+    let cancelled = false;
+    let socket: WebSocket | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+    let attempt = 0;
 
-    socketRef.current = socket;
-    setStatus('connecting');
-
-    socket.onopen = () => setStatus('open');
-
-    socket.onmessage = (event) => {
-      const parsedEvent = parseServerEvent(event.data);
-
-      if (parsedEvent) {
-        onEventRef.current(parsedEvent);
+    function stopHeartbeat() {
+      if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
       }
-    };
+    }
 
-    socket.onerror = () => setStatus('error');
+    function scheduleReconnect() {
+      const delay = Math.min(1000 * 2 ** attempt, MAX_RECONNECT_DELAY_MS);
 
-    socket.onclose = () => {
-      setStatus('closed');
+      attempt += 1;
+      reconnectTimer = setTimeout(connect, delay);
+    }
 
-      if (socketRef.current === socket) {
-        socketRef.current = null;
+    async function connect() {
+      setStatus('connecting');
+
+      let ticket: string;
+
+      try {
+        ticket = await fetchWebSocketTicket();
+      } catch {
+        if (!cancelled) {
+          setStatus('error');
+          scheduleReconnect();
+        }
+
+        return;
       }
-    };
+
+      if (cancelled) {
+        return;
+      }
+
+      const ws = new WebSocket(getSocketUrl(ticket));
+
+      socket = ws;
+      socketRef.current = ws;
+
+      ws.onopen = () => {
+        attempt = 0;
+        setStatus('open');
+
+        heartbeatTimer = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'system:ping' }));
+          }
+        }, HEARTBEAT_INTERVAL_MS);
+      };
+
+      ws.onmessage = (event) => {
+        const parsedEvent = parseServerEvent(event.data);
+
+        if (parsedEvent) {
+          onEventRef.current(parsedEvent);
+        }
+      };
+
+      ws.onerror = () => setStatus('error');
+
+      ws.onclose = () => {
+        stopHeartbeat();
+
+        if (socketRef.current === ws) {
+          socketRef.current = null;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setStatus('closed');
+        scheduleReconnect();
+      };
+    }
+
+    connect();
 
     return () => {
-      socket.close(1000, 'Client unmounted');
+      cancelled = true;
+
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+
+      stopHeartbeat();
+      socket?.close(1000, 'Client unmounted');
       socketRef.current = null;
     };
   }, [enabled]);

@@ -15,6 +15,11 @@ export interface AccessTokenPayload {
   userId: string;
 }
 
+export interface WebSocketTicketPayload {
+  userId: string;
+  type: 'websocket';
+}
+
 export class AuthService {
   constructor(private readonly userRepository: UserRepository) {}
 
@@ -43,12 +48,12 @@ export class AuthService {
       throw new Error('INVALID_CREDENTIALS');
     }
 
-    const passwordMathes = await bcrypt.compare(
+    const passwordMatches = await bcrypt.compare(
       input.password,
       user.passwordHash,
     );
 
-    if (!passwordMathes) {
+    if (!passwordMatches) {
       throw new Error('INVALID_CREDENTIALS');
     }
 
@@ -74,13 +79,49 @@ export class AuthService {
       if (
         typeof payload !== 'object' ||
         payload === null ||
-        typeof payload.userId !== 'string'
+        typeof payload.userId !== 'string' ||
+        payload.type !== undefined
       ) {
         return null;
       }
 
       return {
         userId: payload.userId,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  createWebSocketTicket(userId: string): string {
+    return jwt.sign(
+      {
+        userId,
+        type: 'websocket',
+      },
+      env.jwtSecret,
+      {
+        expiresIn: '60s',
+      },
+    );
+  }
+
+  verifyWebSocketTicket(token: string): WebSocketTicketPayload | null {
+    try {
+      const payload = jwt.verify(token, env.jwtSecret);
+
+      if (
+        typeof payload !== 'object' ||
+        payload === null ||
+        typeof payload.userId !== 'string' ||
+        payload.type !== 'websocket'
+      ) {
+        return null;
+      }
+
+      return {
+        userId: payload.userId,
+        type: 'websocket',
       };
     } catch {
       return null;

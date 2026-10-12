@@ -1,6 +1,5 @@
 import type { Server as HttpServer, IncomingMessage } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
-import { getCookie } from '../../auth/auth.cookie.js';
 import type { AuthService } from '../../auth/auth.service.js';
 import { env } from '../../config/env.js';
 import type { ConversationRepository } from '../../modules/conversations/conversation.repository.js';
@@ -157,9 +156,9 @@ export function attachWebSocketServer(
       return;
     }
 
-    const token = getCookie(request.headers.cookie, 'access_token');
+    const ticket = requestUrl.searchParams.get('ticket');
 
-    if (!token) {
+    if (!ticket) {
       socket.write('HTTP/1.1 Unauthorized\r\n\r\n');
 
       socket.destroy();
@@ -167,7 +166,7 @@ export function attachWebSocketServer(
       return;
     }
 
-    const payload = authService.verifyAccessToken(token);
+    const payload = authService.verifyWebSocketTicket(ticket);
 
     if (!payload) {
       socket.write('HTTP/1.1 Unauthorized\r\n\r\n');
