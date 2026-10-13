@@ -1,5 +1,5 @@
 import { EllipsisVertical, Phone, Video } from 'lucide-react';
-import { Button } from '@/shared/ui/button/Button';
+import { Button } from '@/shared/ui/button';
 
 export function ChatActions() {
   return (

@@ -2,7 +2,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useConversationStore } from '@/entities/conversation';
 import { User } from '@/entities/user';
 import { ChatActions } from '@/features/chat-actions';
-import { Button } from '@/shared/ui/button/Button';
+import { Button } from '@/shared/ui/button';
 import type { useChatRoom } from '../model/useChatRoom';
 
 type ChatWindowHeaderProps = {

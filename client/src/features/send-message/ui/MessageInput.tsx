@@ -1,7 +1,7 @@
 import { CameraIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
-import { Button } from '@/shared/ui/button/Button';
-import * as Input from '@/shared/ui/input/Input';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface MessageInputProps {
   onSend: (content: string) => boolean;
@@ -36,7 +36,7 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   };
 
   return (
-    <Input.Root variant="message">
+    <Input variant="message">
       <Input.Icon>
         <Button variant="addon" aria-label="Attach file">
           <PaperclipIcon aria-hidden="true" />
@@ -62,6 +62,6 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
           <CameraIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
-    </Input.Root>
+    </Input>
   );
 }

@@ -1,5 +1,5 @@
 import { Bell, Home, MessageCircleMore, Settings } from 'lucide-react';
-import { Button } from '@/shared/ui/button/Button';
+import { Button } from '@/shared/ui/button';
 
 const NAV_ITEMS = [
   { icon: Home, label: 'Home' },

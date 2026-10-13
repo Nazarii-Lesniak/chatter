@@ -10,8 +10,8 @@ import {
 } from 'react';
 import { type UserDto, usersApi } from '@/shared/api';
 import { getErrorMessage } from '@/shared/lib/get-error-message';
-import { Button } from '@/shared/ui/button/Button';
-import * as Input from '@/shared/ui/input/Input';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
@@ -92,7 +92,7 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
 
   return (
     <div className="relative flex flex-col w-full">
-      <Input.Root variant="search">
+      <Input variant="search">
         <Input.Icon>
           <Button variant="search" type="button" aria-label="Search">
             <SearchIcon aria-hidden="true" />
@@ -117,7 +117,7 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
             </button>
           </Input.Icon>
         )}
-      </Input.Root>
+      </Input>
 
       {showDropdown && (
         <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-input-glow z-50 overflow-hidden">
@@ -128,7 +128,7 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
           )}
 
           {!isLoading && error && (
-            <p className="px-4 py-3 text-sm text-red-500">{error}</p>
+            <p className="px-4 py-3 text-sm text-chat-error">{error}</p>
           )}
 
           {!isLoading && !error && users.length === 0 && (

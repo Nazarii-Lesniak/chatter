@@ -33,6 +33,7 @@ export function ChatWindow() {
       <ChatWindowHeader companion={companion} />
 
       <ChatMessagesList
+        conversationId={activeConversation?.id ?? null}
         messages={messages}
         isLoading={isLoading}
         error={error}

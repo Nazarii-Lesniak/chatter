@@ -2,28 +2,44 @@ import { Message } from '@/entities/message';
 import { useAuthStore } from '@/entities/user';
 import type { MessageDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
-import { useAutoScroll } from '@/shared/lib/hooks/useAutoScroll';
+import { formatClockTime } from '@/shared/lib/format';
+import { useScrollActivity, useStickToBottom } from '@/shared/lib/hooks';
 
 interface ChatMessagesListProps {
+  conversationId: string | null;
   messages: MessageDto[];
   isLoading: boolean;
   error: string | null;
 }
 
 export function ChatMessagesList({
+  conversationId,
   messages,
   isLoading,
   error,
 }: ChatMessagesListProps) {
   const currentUser = useAuthStore((state) => state.user);
 
-  const { handleScroll, isScrolling, messagesEndRef } = useAutoScroll({
-    messages,
-    isLoading,
-  });
+  const lastMessage = messages.at(-1);
+
+  const { containerRef, onScroll: syncPinnedState } =
+    useStickToBottom<HTMLDivElement>({
+      itemCount: messages.length,
+      resetKey: conversationId,
+      isReady: !isLoading,
+      forceOnNewItem: lastMessage?.senderId === currentUser?.id,
+    });
+
+  const { isScrolling, onScroll: markScrolling } = useScrollActivity();
+
+  const handleScroll = () => {
+    syncPinnedState();
+    markScrolling();
+  };
 
   return (
     <div
+      ref={containerRef}
       onScroll={handleScroll}
       className={cn(
         'flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 custom-scrollbar',
@@ -37,7 +53,7 @@ export function ChatMessagesList({
       )}
 
       {error && (
-        <p className="text-sm text-red-500 text-center py-4">{error}</p>
+        <p className="text-sm text-chat-error text-center py-4">{error}</p>
       )}
 
       {!isLoading && !error && messages.length === 0 && (
@@ -61,16 +77,11 @@ export function ChatMessagesList({
               </Message.Bubble>
 
               <Message.Timestamp>
-                {new Date(message.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {formatClockTime(message.createdAt)}
               </Message.Timestamp>
             </Message>
           );
         })}
-
-      <div ref={messagesEndRef} />
     </div>
   );
 }

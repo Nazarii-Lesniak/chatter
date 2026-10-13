@@ -3,7 +3,7 @@
 import { LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/entities/user';
-import { Button } from '@/shared/ui/button/Button';
+import { Button } from '@/shared/ui/button';
 
 export function SidebarProfile() {
   const router = useRouter();

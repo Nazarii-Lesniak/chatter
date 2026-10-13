@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
-import { formatTimestamp } from '@/shared/lib/format/format-timestamp';
+import { formatTimestamp } from '@/shared/lib/format';
 import { useUserContext } from './UserContext';
 
 const CreatedAtVariants = cva('text-chat-text-main font-light tracking-wide', {

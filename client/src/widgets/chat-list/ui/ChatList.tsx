@@ -7,7 +7,7 @@ import { useConversationStore } from '@/entities/conversation';
 import { SearchInput } from '@/features/search-by-name';
 import { ConversationListItem } from '@/features/select-conversation';
 import { cn } from '@/shared/lib/class-merge';
-import { Button } from '@/shared/ui/button/Button';
+import { Button } from '@/shared/ui/button';
 
 interface ChatListProps {
   onOpenSidebar: () => void;
@@ -85,7 +85,7 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
 
             <Button
               type="button"
-              variant="auth"
+              variant="primary"
               className="w-full"
               onClick={() => router.push('/login')}
             >

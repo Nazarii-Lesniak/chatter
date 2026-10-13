@@ -5,8 +5,8 @@ import { type SubmitEvent, useState } from 'react';
 import { useAuthStore } from '@/entities/user';
 import { authApi } from '@/shared/api';
 import { getErrorMessage } from '@/shared/lib/get-error-message';
-import { Button } from '@/shared/ui/button/Button';
-import { Input } from '@/shared/ui/input/Input';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface AuthFormProps {
   mode: 'login' | 'register';
@@ -101,12 +101,12 @@ export function AuthForm({
       </div>
 
       {error && (
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="text-sm text-chat-error">
           {error}
         </p>
       )}
 
-      <Button type="submit" variant="auth" disabled={isLoading}>
+      <Button type="submit" variant="primary" disabled={isLoading}>
         {isLoading ? `${submitText}…` : submitText}
       </Button>
     </form>
