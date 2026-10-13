@@ -3,11 +3,11 @@
 import { useConversationStore } from '@/entities/conversation';
 import type { UserType } from '@/entities/user';
 import { User } from '@/entities/user';
-import type { Conversation } from '@/shared/api/types/conversation.types';
+import type { ConversationDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
 
 interface ConversationListItemProps {
-  conversation: Conversation;
+  conversation: ConversationDto;
   isActive: boolean;
 }
 

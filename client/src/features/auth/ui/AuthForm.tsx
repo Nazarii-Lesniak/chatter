@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { type SubmitEvent, useState } from 'react';
 import { useAuthStore } from '@/entities/user';
-import { authApi } from '@/shared/api/auth.api';
+import { authApi } from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 import { Button } from '@/shared/ui/button/Button';
 import { Input } from '@/shared/ui/input/Input';
 
@@ -44,7 +45,7 @@ export function AuthForm({
       setUser(user);
       router.push('/');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Something went wrong');
+      setError(getErrorMessage(error, 'Something went wrong'));
     } finally {
       setIsLoading(false);
     }

@@ -1,11 +1,11 @@
 import { Message } from '@/entities/message';
 import { useAuthStore } from '@/entities/user';
-import type { Message as MessageType } from '@/shared/api/messages';
+import type { MessageDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
 import { useAutoScroll } from '@/shared/lib/hooks/useAutoScroll';
 
 interface ChatMessagesListProps {
-  messages: MessageType[];
+  messages: MessageDto[];
   isLoading: boolean;
   error: string | null;
 }

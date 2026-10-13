@@ -1,13 +1,14 @@
 import { create } from 'zustand';
-import { type Message, messagesApi } from '@/shared/api/messages';
+import { type MessageDto, messagesApi } from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 
 interface MessageState {
-  messages: Message[];
+  messages: MessageDto[];
   isLoading: boolean;
   error: string | null;
 
   fetchMessages: (conversationId: string) => Promise<void>;
-  appendMessage: (message: Message) => void;
+  appendMessage: (message: MessageDto) => void;
   setError: (error: string | null) => void;
   clearMessages: () => void;
 }
@@ -34,8 +35,7 @@ export const useMessageStore = create<MessageState>((set) => ({
     } catch (error) {
       set({
         messages: [],
-        error:
-          error instanceof Error ? error.message : 'Failed to load messages',
+        error: getErrorMessage(error, 'Failed to load messages'),
         isLoading: false,
       });
     }

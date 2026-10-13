@@ -1,13 +1,13 @@
 import { create } from 'zustand';
-import { type AuthUser, authApi } from '@/shared/api/auth.api';
+import { authApi, type UserDto } from '@/shared/api';
 
 type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 interface AuthState {
-  user: AuthUser | null;
+  user: UserDto | null;
   status: AuthStatus;
 
-  setUser: (user: AuthUser) => void;
+  setUser: (user: UserDto) => void;
   clearUser: () => void;
   initializeAuth: () => Promise<void>;
   logout: () => Promise<void>;

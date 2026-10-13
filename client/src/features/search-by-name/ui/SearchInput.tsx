@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { UserSearchResult } from '@/shared/api/users';
-import { usersApi } from '@/shared/api/users';
+import { type UserDto, usersApi } from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 import { Button } from '@/shared/ui/button/Button';
 import * as Input from '@/shared/ui/input/Input';
 
@@ -17,12 +17,12 @@ const DEBOUNCE_MS = 300;
 const MIN_QUERY_LENGTH = 2;
 
 interface SearchInputProps {
-  onSelectUser: (user: UserSearchResult) => void;
+  onSelectUser: (user: UserDto) => void;
 }
 
 export function SearchInput({ onSelectUser }: SearchInputProps) {
   const [query, setQuery] = useState('');
-  const [users, setUsers] = useState<UserSearchResult[]>([]);
+  const [users, setUsers] = useState<UserDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,9 +59,7 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
         }
 
         setUsers([]);
-        setError(
-          error instanceof Error ? error.message : 'Failed to search users',
-        );
+        setError(getErrorMessage(error, 'Failed to search users'));
       } finally {
         if (requestId === searchRequestId.current) {
           setIsLoading(false);
@@ -84,7 +82,7 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
     setError(null);
   };
 
-  const handleSelectUser = (user: UserSearchResult) => {
+  const handleSelectUser = (user: UserDto) => {
     onSelectUser(user);
     setQuery('');
     setUsers([]);

@@ -3,10 +3,7 @@ import { useConversationStore } from '@/entities/conversation';
 import { useMessageStore } from '@/entities/message';
 import type { UserType } from '@/entities/user';
 import { useAuthStore } from '@/entities/user';
-import {
-  type ServerWebSocketEvent,
-  useChatWebSocket,
-} from '@/shared/lib/websocket';
+import { type ServerWebSocketEvent, useChatWebSocket } from '@/shared/api';
 
 export function useChatRoom() {
   const currentUser = useAuthStore((state) => state.user);

@@ -1,14 +1,15 @@
 import { create } from 'zustand';
-import { conversationsApi } from '@/shared/api/conversations';
-import type {
-  Conversation,
-  ConversationMessage,
-} from '@/shared/api/types/conversation.types';
+import {
+  type ConversationDto,
+  conversationsApi,
+  type MessageDto,
+} from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 
 type MobileView = 'contacts' | 'chat';
 
 interface ConversationState {
-  conversations: Conversation[];
+  conversations: ConversationDto[];
   activeConversationId: string | null;
   mobileView: MobileView;
   isLoading: boolean;
@@ -18,10 +19,7 @@ interface ConversationState {
   selectConversation: (conversationId: string) => void;
   goBackToContacts: () => void;
   createConversation: (recipientId: string) => Promise<void>;
-  updateLastMessage: (
-    conversationId: string,
-    message: ConversationMessage,
-  ) => void;
+  updateLastMessage: (conversationId: string, message: MessageDto) => void;
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
@@ -53,10 +51,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       });
     } catch (error) {
       set({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to load conversations',
+        error: getErrorMessage(error, 'Failed to load conversations'),
         isLoading: false,
       });
     }
@@ -89,10 +84,7 @@ export const useConversationStore = create<ConversationState>((set, get) => ({
       });
     } catch (error) {
       set({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to create conversation',
+        error: getErrorMessage(error, 'Failed to create conversation'),
       });
     }
   },
