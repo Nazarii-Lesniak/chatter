@@ -1,12 +1,12 @@
 import { Message } from '@/entities/message';
-import { useAuthStore } from '@/entities/user';
 import type { MessageDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
 import { formatClockTime } from '@/shared/lib/format';
 import { useScrollActivity, useStickToBottom } from '@/shared/lib/hooks';
 
 interface ChatMessagesListProps {
-  conversationId: string | null;
+  conversationId: string;
+  currentUserId: string | undefined;
   messages: MessageDto[];
   isLoading: boolean;
   error: string | null;
@@ -14,22 +14,18 @@ interface ChatMessagesListProps {
 
 export function ChatMessagesList({
   conversationId,
+  currentUserId,
   messages,
   isLoading,
   error,
 }: ChatMessagesListProps) {
-  const currentUser = useAuthStore((state) => state.user);
-
-  const lastMessage = messages.at(-1);
-
   const { containerRef, onScroll: syncPinnedState } =
     useStickToBottom<HTMLDivElement>({
       itemCount: messages.length,
       resetKey: conversationId,
       isReady: !isLoading,
-      forceOnNewItem: lastMessage?.senderId === currentUser?.id,
+      forceOnNewItem: messages.at(-1)?.senderId === currentUserId,
     });
-
   const { isScrolling, onScroll: markScrolling } = useScrollActivity();
 
   const handleScroll = () => {
@@ -41,6 +37,9 @@ export function ChatMessagesList({
     <div
       ref={containerRef}
       onScroll={handleScroll}
+      role="log"
+      aria-label="Messages"
+      aria-busy={isLoading}
       className={cn(
         'flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 custom-scrollbar',
         isScrolling && 'is-scrolling',
@@ -53,7 +52,9 @@ export function ChatMessagesList({
       )}
 
       {error && (
-        <p className="text-sm text-chat-error text-center py-4">{error}</p>
+        <p role="alert" className="text-sm text-chat-error text-center py-4">
+          {error}
+        </p>
       )}
 
       {!isLoading && !error && messages.length === 0 && (
@@ -62,26 +63,24 @@ export function ChatMessagesList({
         </p>
       )}
 
-      {!isLoading &&
-        !error &&
-        messages.map((message) => {
-          const isOwn = message.senderId === currentUser?.id;
+      {messages.map((message) => {
+        const isOwn = message.senderId === currentUserId;
 
-          return (
-            <Message
-              key={message.id}
-              className={isOwn ? 'self-end items-end' : 'self-start'}
-            >
-              <Message.Bubble variant={isOwn ? 'own' : 'companion'}>
-                {message.content}
-              </Message.Bubble>
+        return (
+          <Message
+            key={message.id}
+            className={isOwn ? 'self-end items-end' : 'self-start'}
+          >
+            <Message.Bubble variant={isOwn ? 'own' : 'companion'}>
+              {message.content}
+            </Message.Bubble>
 
-              <Message.Timestamp>
-                {formatClockTime(message.createdAt)}
-              </Message.Timestamp>
-            </Message>
-          );
-        })}
+            <Message.Timestamp>
+              {formatClockTime(message.createdAt)}
+            </Message.Timestamp>
+          </Message>
+        );
+      })}
     </div>
   );
 }

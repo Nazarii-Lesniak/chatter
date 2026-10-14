@@ -23,6 +23,14 @@ interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null) {
+  unauthorizedHandler = handler;
+}
+
 async function readErrorMessage(response: Response): Promise<string> {
   try {
     const data: unknown = await response.json();
@@ -69,6 +77,10 @@ export async function apiClient<T = void>(
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
+
     throw new ApiError(await readErrorMessage(response), response.status);
   }
   const text = await response.text();

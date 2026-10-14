@@ -1,52 +1,63 @@
 'use client';
 
 import { PanelLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useConversationStore } from '@/entities/conversation';
+import { useEffect, useState } from 'react';
+import {
+  useConversationStore,
+  useIsConversationOpen,
+} from '@/entities/conversation';
 import { SearchInput } from '@/features/search-by-name';
-import { ConversationListItem } from '@/features/select-conversation';
+import type { UserDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 import { Button } from '@/shared/ui/button';
+import { ConversationListItem } from './ConversationListItem';
 
 interface ChatListProps {
   onOpenSidebar: () => void;
 }
 
-function getConversationErrorMessage(error: string) {
-  if (error === 'Invalid or expired token') {
-    return 'The session has expired. Please login again.';
-  }
-
-  return 'Something went wrong, please try again later';
-}
-
 export function ChatList({ onOpenSidebar }: ChatListProps) {
-  const router = useRouter();
-
   const conversations = useConversationStore((state) => state.conversations);
   const activeConversationId = useConversationStore(
     (state) => state.activeConversationId,
   );
-  const mobileView = useConversationStore((state) => state.mobileView);
   const isLoading = useConversationStore((state) => state.isLoading);
   const error = useConversationStore((state) => state.error);
   const fetchConversations = useConversationStore(
     (state) => state.fetchConversations,
   );
-  const createConversation = useConversationStore(
-    (state) => state.createConversation,
+  const selectConversation = useConversationStore(
+    (state) => state.selectConversation,
   );
+  const startConversation = useConversationStore(
+    (state) => state.startConversation,
+  );
+  const isConversationOpen = useIsConversationOpen();
+
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
     void fetchConversations();
   }, [fetchConversations]);
 
+  const handleSelectUser = async (user: UserDto) => {
+    setStartError(null);
+
+    try {
+      await startConversation(user.id);
+    } catch (error) {
+      setStartError(getErrorMessage(error, 'Failed to start a conversation'));
+    }
+  };
+
+  const hasLoaded = !isLoading && !error;
+
   return (
     <div
       className={cn(
         'flex flex-col w-full gap-5 md:w-80 xl:w-96 md:shrink-0',
-        mobileView === 'chat'
+        isConversationOpen
           ? 'hidden md:flex'
           : 'flex animate-slide-in-left md:animate-none',
       )}
@@ -56,60 +67,69 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
           variant="addon"
           aria-label="Open sidebar"
           onClick={onOpenSidebar}
-          className="lg:hidden shrink-0"
+          className="lg:hidden"
         >
           <PanelLeft aria-hidden="true" />
         </Button>
 
-        <SearchInput
-          onSelectUser={(user) => {
-            void createConversation(user.id);
-          }}
-        />
+        <SearchInput onSelectUser={handleSelectUser} />
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto rounded-3xl bg-white p-4 py-2 pl-3 pr-5 shadow-input-glow custom-scrollbar md:py-3 md:pl-4 md:pr-6">
-        <h2 className="text-base font-semibold md:text-lg">People</h2>
+      {startError && (
+        <p role="alert" className="text-sm text-chat-error">
+          {startError}
+        </p>
+      )}
+
+      <section
+        aria-labelledby="people-heading"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto rounded-3xl bg-white p-4 py-2 pl-3 pr-5 shadow-input-glow custom-scrollbar md:py-3 md:pl-4 md:pr-6"
+      >
+        <h2 id="people-heading" className="text-base font-semibold md:text-lg">
+          People
+        </h2>
 
         {isLoading && (
-          <p className="py-4 text-center text-sm text-chat-text-muted">
+          <p
+            role="status"
+            className="py-4 text-center text-sm text-chat-text-muted"
+          >
             Loading conversations...
           </p>
         )}
 
         {error && (
-          <div className="flex flex-col items-center">
+          <div role="alert" className="flex flex-col items-center">
             <p className="py-4 text-center text-sm text-chat-text-muted">
-              {getConversationErrorMessage(error)}
+              {error}
             </p>
 
             <Button
-              type="button"
               variant="primary"
               className="w-full"
-              onClick={() => router.push('/login')}
+              onClick={() => void fetchConversations()}
             >
-              Login
+              Try again
             </Button>
           </div>
         )}
 
-        {!isLoading && !error && conversations.length === 0 && (
+        {hasLoaded && conversations.length === 0 && (
           <p className="py-4 text-center text-sm text-chat-text-muted">
             No conversations yet
           </p>
         )}
 
-        {!isLoading &&
-          !error &&
+        {hasLoaded &&
           conversations.map((conversation) => (
             <ConversationListItem
               key={conversation.id}
               conversation={conversation}
               isActive={conversation.id === activeConversationId}
+              onSelect={selectConversation}
             />
           ))}
-      </div>
+      </section>
     </div>
   );
 }

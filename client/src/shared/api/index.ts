@@ -1,4 +1,4 @@
-export { ApiError } from './api-client';
+export { ApiError, setUnauthorizedHandler } from './api-client';
 export { authApi } from './auth.api';
 export { conversationsApi } from './conversations.api';
 export { messagesApi } from './messages.api';

@@ -24,14 +24,6 @@ export const buttonVariants = cva(
           ICON_SIZE,
           'text-chat-icon-addon hover:text-chat-icon-addon/80 focus-visible:outline-chat-icon-action',
         ],
-        voice: [
-          ICON_SIZE,
-          'text-chat-icon-voice hover:text-chat-icon-voice/80 focus-visible:outline-chat-icon-action',
-        ],
-        search: [
-          ICON_SIZE,
-          'text-chat-icon-search hover:text-chat-icon-search/80 focus-visible:outline-chat-icon-action',
-        ],
         primary: [
           'h-11 md:h-12 rounded-3xl',
           'bg-chat-purple text-white hover:opacity-80 transition-opacity',

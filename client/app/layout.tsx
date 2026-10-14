@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Roboto } from 'next/font/google';
 import type { ReactNode } from 'react';
 import '@/app/styles/globals.css';
-import { AuthProvider } from '@/app/providers';
+import { AuthProvider } from '@/app/session';
 
 const roboto = Roboto({
   variable: '--font-roboto-sans',

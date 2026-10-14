@@ -8,6 +8,7 @@ import { FullScreen } from '@/shared/ui/full-screen';
 import { Spinner } from '@/shared/ui/spinner';
 import { ConnectingScreen } from './ConnectingScreen';
 import { ConnectionErrorScreen } from './ConnectionErrorScreen';
+import { useSessionLifecycle } from './useSessionLifecycle';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -18,6 +19,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const pathname = usePathname();
   const router = useRouter();
+
+  useSessionLifecycle();
 
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname ?? '');
 

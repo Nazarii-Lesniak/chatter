@@ -12,6 +12,7 @@ interface AuthState {
   status: AuthStatus;
 
   setUser: (user: UserDto) => void;
+  clearSession: () => void;
   initializeAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -23,6 +24,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   status: 'loading',
 
   setUser: (user) => set({ user, status: 'authenticated' }),
+
+  clearSession: () => set({ user: null, status: 'unauthenticated' }),
 
   initializeAuth: async () => {
     if (pendingInitialization) {
@@ -62,7 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await authApi.logout();
     } catch {
     } finally {
-      set({ user: null, status: 'unauthenticated' });
+      get().clearSession();
     }
   },
 }));

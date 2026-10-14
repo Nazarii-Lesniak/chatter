@@ -2,71 +2,89 @@ import { create } from 'zustand';
 import { type MessageDto, messagesApi } from '@/shared/api';
 import { getErrorMessage } from '@/shared/lib/get-error-message';
 
+interface FetchOptions {
+  silent?: boolean;
+}
+
 interface MessageState {
+  conversationId: string | null;
   messages: MessageDto[];
   isLoading: boolean;
   error: string | null;
+  sendError: string | null;
 
-  fetchMessages: (conversationId: string) => Promise<void>;
+  fetchMessages: (
+    conversationId: string,
+    options?: FetchOptions,
+  ) => Promise<void>;
+
   appendMessage: (message: MessageDto) => void;
-  setError: (error: string | null) => void;
-  clearMessages: () => void;
+  setSendError: (message: string | null) => void;
+  reset: () => void;
 }
 
-export const useMessageStore = create<MessageState>((set) => ({
+const initialState = {
+  conversationId: null,
   messages: [],
   isLoading: false,
   error: null,
+  sendError: null,
+};
 
-  fetchMessages: async (conversationId) => {
-    set({
-      messages: [],
-      isLoading: true,
-      error: null,
-    });
+function mergeById(fetched: MessageDto[], live: MessageDto[]) {
+  const knownIds = new Set(fetched.map((message) => message.id));
+
+  return [...fetched, ...live.filter((message) => !knownIds.has(message.id))];
+}
+
+export const useMessageStore = create<MessageState>((set, get) => ({
+  ...initialState,
+
+  fetchMessages: async (conversationId, { silent = false } = {}) => {
+    if (silent) {
+      if (get().conversationId !== conversationId) {
+        return;
+      }
+    } else {
+      set({ ...initialState, conversationId, isLoading: true });
+    }
 
     try {
-      const messages = await messagesApi.getByConversation(conversationId);
+      const fetched = await messagesApi.getByConversation(conversationId);
+
+      if (get().conversationId !== conversationId) {
+        return;
+      }
+
+      set((state) => ({
+        messages: mergeById(fetched, state.messages),
+        isLoading: false,
+      }));
+    } catch (error) {
+      if (silent || get().conversationId !== conversationId) {
+        return;
+      }
 
       set({
-        messages,
-        isLoading: false,
-      });
-    } catch (error) {
-      set({
-        messages: [],
         error: getErrorMessage(error, 'Failed to load messages'),
         isLoading: false,
       });
     }
   },
 
-  appendMessage: (message) => {
+  appendMessage: (message) =>
     set((state) => {
-      const isDuplicate = state.messages.some(
-        (messageState) => messageState.id === message.id,
-      );
-
-      if (isDuplicate) {
+      if (
+        message.conversationId !== state.conversationId ||
+        state.messages.some((existing) => existing.id === message.id)
+      ) {
         return state;
       }
 
-      return {
-        messages: [...state.messages, message],
-      };
-    });
-  },
+      return { messages: [...state.messages, message] };
+    }),
 
-  setError: (error) => {
-    set({
-      error,
-    });
-  },
+  setSendError: (sendError) => set({ sendError }),
 
-  clearMessages: () => {
-    set({
-      messages: [],
-      error: null,
-    });
-  },
+  reset: () => set(initialState),
 }));
