@@ -1,8 +1,11 @@
-export default function ConnectingFallback() {
+import { FullScreen } from '@/shared/ui/full-screen';
+import { Spinner } from '@/shared/ui/spinner';
+
+export function ConnectingScreen() {
   return (
-    <div className="flex h-dvh w-full flex-col items-center justify-center bg-chat-background p-4 text-center">
+    <FullScreen className="flex-col p-4 text-center">
       <div className="w-full max-w-sm flex flex-col items-center gap-4 bg-white p-6 md:p-8 rounded-3xl shadow-input-glow">
-        <div className="size-10 rounded-full border-3 border-chat-sidebar/20 border-t-chat-sidebar animate-spin" />
+        <Spinner size="lg" />
         <div className="flex flex-col gap-2">
           <h2 className="text-base md:text-lg font-semibold text-chat-text-main">
             Connecting to Chatter
@@ -14,6 +17,6 @@ export default function ConnectingFallback() {
           </p>
         </div>
       </div>
-    </div>
+    </FullScreen>
   );
 }

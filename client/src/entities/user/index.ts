@@ -1,4 +1,4 @@
-export { useAuthStore } from './model/auth.store';
+export { type AuthStatus, useAuthStore } from './model/auth.store';
 export type {
   UserContextProps,
   UserStatus,

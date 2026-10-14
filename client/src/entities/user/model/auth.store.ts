@@ -1,33 +1,60 @@
 import { create } from 'zustand';
-import { authApi, type UserDto } from '@/shared/api';
+import { ApiError, authApi, type UserDto } from '@/shared/api';
 
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+export type AuthStatus =
+  | 'loading'
+  | 'authenticated'
+  | 'unauthenticated'
+  | 'error';
 
 interface AuthState {
   user: UserDto | null;
   status: AuthStatus;
 
   setUser: (user: UserDto) => void;
-  clearUser: () => void;
   initializeAuth: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+let pendingInitialization: Promise<void> | null = null;
+
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   status: 'loading',
 
   setUser: (user) => set({ user, status: 'authenticated' }),
-  clearUser: () => set({ user: null, status: 'unauthenticated' }),
 
   initializeAuth: async () => {
-    try {
-      const user = await authApi.getCurrentUser();
-
-      set({ user, status: 'authenticated' });
-    } catch {
-      set({ user: null, status: 'unauthenticated' });
+    if (pendingInitialization) {
+      return pendingInitialization;
     }
+
+    const { status } = get();
+
+    if (status === 'authenticated' || status === 'unauthenticated') {
+      return Promise.resolve();
+    }
+
+    set({ status: 'loading' });
+
+    pendingInitialization = authApi
+      .getCurrentUser()
+      .then(
+        (user) => set({ user, status: 'authenticated' }),
+        (error: unknown) =>
+          set({
+            user: null,
+            status:
+              error instanceof ApiError && error.isUnauthorized
+                ? 'unauthenticated'
+                : 'error',
+          }),
+      )
+      .finally(() => {
+        pendingInitialization = null;
+      });
+
+    return pendingInitialization;
   },
 
   logout: async () => {

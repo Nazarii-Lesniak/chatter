@@ -7,7 +7,6 @@
   --color-grey: #7c7c7c;
 
   --font-sans: var(--font-roboto-sans);
-  --font-mono: var(--font-roboto-mono);
 
   --shadow-input-glow: 0 4px 5px 2px rgb(121 197 239 / 38%);
   --shadow-input-glow-focus: 0 4px 6px 3px rgb(121 197 239 / 70%);
