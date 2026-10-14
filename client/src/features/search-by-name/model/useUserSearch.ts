@@ -28,7 +28,11 @@ export function useUserSearch(query: string) {
     const controller = new AbortController();
 
     usersApi.search(debouncedTerm, controller.signal).then(
-      (users) => setResult({ term: debouncedTerm, users, error: null }),
+      (users) => {
+        if (!controller.signal.aborted) {
+          setResult({ term: debouncedTerm, users, error: null });
+        }
+      },
       (error: unknown) => {
         if (!controller.signal.aborted) {
           setResult({
