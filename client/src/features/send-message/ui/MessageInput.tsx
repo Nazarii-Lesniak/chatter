@@ -1,44 +1,54 @@
-import { CameraIcon, PaperclipIcon, SmileIcon } from 'lucide-react';
-import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
-import { Button } from '@/shared/ui/button/Button';
-import * as Input from '@/shared/ui/input/Input';
+'use client';
+
+import {
+  CameraIcon,
+  PaperclipIcon,
+  SendHorizontal,
+  SmileIcon,
+} from 'lucide-react';
+import { type KeyboardEvent, useState } from 'react';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface MessageInputProps {
   onSend: (content: string) => boolean;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   const [value, setValue] = useState('');
 
-  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(event.target.value);
-  };
+  const content = value.trim();
+  const canSend = content.length > 0 && !disabled;
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || event.shiftKey) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const content = value.trim();
-
-    if (!content || disabled) {
-      return;
-    }
-
-    const sent = onSend(content);
-
-    if (sent) {
+  const send = () => {
+    if (canSend && onSend(content)) {
       setValue('');
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (
+      event.key !== 'Enter' ||
+      event.shiftKey ||
+      event.nativeEvent.isComposing
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    send();
+  };
+
   return (
-    <Input.Root variant="message">
+    <Input variant="message">
       <Input.Icon>
-        <Button variant="addon" aria-label="Attach file">
+        <Button
+          variant="addon"
+          aria-label="Attach file"
+          disabled
+          title="Coming soon"
+        >
           <PaperclipIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
@@ -47,21 +57,42 @@ export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
         aria-label="Type your message"
         placeholder="Type your message here..."
         value={value}
-        onChange={handleChange}
+        onChange={(event) => setValue(event.target.value)}
         onKeyDown={handleKeyDown}
         disabled={disabled}
+        enterKeyHint="send"
       />
 
       <Input.Icon>
-        <Button variant="addon" aria-label="Select Emoji">
+        <Button
+          variant="addon"
+          aria-label="Select emoji"
+          disabled
+          title="Coming soon"
+        >
           <SmileIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
       <Input.Icon>
-        <Button variant="addon" aria-label="Select photo">
+        <Button
+          variant="addon"
+          aria-label="Select photo"
+          disabled
+          title="Coming soon"
+        >
           <CameraIcon aria-hidden="true" />
         </Button>
       </Input.Icon>
-    </Input.Root>
+      <Input.Icon>
+        <Button
+          variant="action"
+          aria-label="Send message"
+          onClick={send}
+          disabled={!canSend}
+        >
+          <SendHorizontal aria-hidden="true" />
+        </Button>
+      </Input.Icon>
+    </Input>
   );
 }

@@ -1,11 +1,11 @@
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
 
-interface ITimestamp extends ComponentProps<'span'> {
-  children: ReactNode;
-}
-
-export function Timestamp({ children, className, ...props }: ITimestamp) {
+export function Timestamp({
+  children,
+  className,
+  ...props
+}: ComponentProps<'span'>) {
   return (
     <span
       className={cn(

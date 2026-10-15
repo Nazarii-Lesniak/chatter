@@ -1,58 +1,44 @@
+import type { VariantProps } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
-import { inputVariants } from './input.variants';
+import { inputVariants } from './input-variants';
 
-export interface IRoot extends ComponentProps<'div'> {
-  variant: 'search' | 'message' | 'auth';
-  children?: React.ReactNode;
+type InputVariantProps = VariantProps<typeof inputVariants>;
+
+interface InputRootProps extends ComponentProps<'div'> {
+  variant: NonNullable<InputVariantProps['variant']>;
 }
 
-export function Root({ className, variant, children, ...props }: IRoot) {
+function Root({ className, variant, ...props }: InputRootProps) {
   return (
-    <div
-      className={cn(
-        'flex items-center',
-        variant === 'search' ? 'max-w-120' : 'max-w-200',
-        inputVariants({ variant, className }),
-      )}
-      {...props}
-    >
-      {children}
-    </div>
+    <div className={cn(inputVariants({ variant }), className)} {...props} />
   );
 }
 
-interface IIconProps extends ComponentProps<'div'> {}
-
-export function Icon({ className, children, ...props }: IIconProps) {
+function Icon({ className, ...props }: ComponentProps<'div'>) {
   return (
     <div
       className={cn('flex items-center justify-center', className)}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
-
-interface IFieldProps extends ComponentProps<'input'> {}
-
-export function Field({ className, ...props }: IFieldProps) {
-  return (
-    <input
-      className={cn(`w-full h-full bg-transparent outline-hidden`, className)}
       {...props}
     />
   );
 }
 
-interface ITextareaProps extends ComponentProps<'textarea'> {}
+function Field({ className, ...props }: ComponentProps<'input'>) {
+  return (
+    <input
+      className={cn('w-full h-full bg-transparent outline-hidden', className)}
+      {...props}
+    />
+  );
+}
 
-export function Textarea({ className, ...props }: ITextareaProps) {
+function Textarea({ className, ...props }: ComponentProps<'textarea'>) {
   return (
     <textarea
+      rows={1}
       className={cn(
-        `w-full h-full content-center bg-transparent outline-hidden p-0 m-0 border-0 resize-none`,
+        'w-full h-full content-center bg-transparent outline-hidden p-0 m-0 border-0 resize-none',
         className,
       )}
       {...props}
@@ -60,8 +46,4 @@ export function Textarea({ className, ...props }: ITextareaProps) {
   );
 }
 
-export const Input = Object.assign(Root, {
-  Icon,
-  Field,
-  Textarea,
-});
+export const Input = Object.assign(Root, { Icon, Field, Textarea });

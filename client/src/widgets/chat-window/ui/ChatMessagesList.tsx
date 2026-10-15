@@ -1,21 +1,45 @@
 import { Message } from '@/entities/message';
-import { useAuthStore } from '@/entities/user';
+import type { MessageDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
-import { useAutoScroll } from '@/shared/lib/hooks/useAutoScroll';
-import { useChatRoom } from '../model/useChatRoom';
+import { formatClockTime } from '@/shared/lib/format';
+import { useScrollActivity, useStickToBottom } from '@/shared/lib/hooks';
 
-export function ChatMessagesList() {
-  const currentUser = useAuthStore((state) => state.user);
-  const { messages, isLoading, error } = useChatRoom();
+interface ChatMessagesListProps {
+  conversationId: string;
+  currentUserId: string | undefined;
+  messages: MessageDto[];
+  isLoading: boolean;
+  error: string | null;
+}
 
-  const { handleScroll, isScrolling, messagesEndRef } = useAutoScroll({
-    messages,
-    isLoading,
-  });
+export function ChatMessagesList({
+  conversationId,
+  currentUserId,
+  messages,
+  isLoading,
+  error,
+}: ChatMessagesListProps) {
+  const { containerRef, onScroll: syncPinnedState } =
+    useStickToBottom<HTMLDivElement>({
+      itemCount: messages.length,
+      resetKey: conversationId,
+      isReady: !isLoading,
+      forceOnNewItem: messages.at(-1)?.senderId === currentUserId,
+    });
+  const { isScrolling, onScroll: markScrolling } = useScrollActivity();
+
+  const handleScroll = () => {
+    syncPinnedState();
+    markScrolling();
+  };
 
   return (
     <div
+      ref={containerRef}
       onScroll={handleScroll}
+      role="log"
+      aria-label="Messages"
+      aria-busy={isLoading}
       className={cn(
         'flex-1 overflow-y-auto overflow-x-hidden flex flex-col gap-3 my-2 p-3 custom-scrollbar',
         isScrolling && 'is-scrolling',
@@ -28,7 +52,9 @@ export function ChatMessagesList() {
       )}
 
       {error && (
-        <p className="text-sm text-red-500 text-center py-4">{error}</p>
+        <p role="alert" className="text-sm text-chat-error text-center py-4">
+          {error}
+        </p>
       )}
 
       {!isLoading && !error && messages.length === 0 && (
@@ -37,29 +63,24 @@ export function ChatMessagesList() {
         </p>
       )}
 
-      {!isLoading &&
-        !error &&
-        messages.map((message) => {
-          const isOwn = message.senderId === currentUser?.id;
+      {messages.map((message) => {
+        const isOwn = message.senderId === currentUserId;
 
-          return (
-            <Message
-              key={message.id}
-              className={isOwn ? 'self-end items-end' : 'self-start'}
-            >
-              <Message.Bubble variant={isOwn ? 'own' : 'companion'}>
-                {message.content}
-              </Message.Bubble>
-              <Message.Timestamp>
-                {new Date(message.createdAt).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </Message.Timestamp>
-            </Message>
-          );
-        })}
-      <div ref={messagesEndRef} />
+        return (
+          <Message
+            key={message.id}
+            className={isOwn ? 'self-end items-end' : 'self-start'}
+          >
+            <Message.Bubble variant={isOwn ? 'own' : 'companion'}>
+              {message.content}
+            </Message.Bubble>
+
+            <Message.Timestamp>
+              {formatClockTime(message.createdAt)}
+            </Message.Timestamp>
+          </Message>
+        );
+      })}
     </div>
   );
 }

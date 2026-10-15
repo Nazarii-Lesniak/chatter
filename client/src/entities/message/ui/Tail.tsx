@@ -1,12 +1,17 @@
-import type { VariantProps } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 import { cn } from '@/shared/lib/class-merge';
-import { type messageVariants, tailVariants } from './message-variants';
+import { type MessageVariant, tailVariants } from './message-variants';
 
-interface ITail extends VariantProps<typeof messageVariants> {
-  variant: 'companion' | 'own';
+interface TailProps extends ComponentProps<'span'> {
+  variant: MessageVariant;
 }
 
-export function Tail({ variant, className }: ITail & ComponentProps<'span'>) {
-  return <span className={cn(tailVariants({ variant }), className)}></span>;
+export function Tail({ variant, className, ...props }: TailProps) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(tailVariants({ variant }), className)}
+      {...props}
+    />
+  );
 }

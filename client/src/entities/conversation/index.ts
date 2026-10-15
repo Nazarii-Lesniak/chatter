@@ -1,1 +1,5 @@
-export { useConversationStore } from './model/conversation.store';
+export {
+  useActiveConversation,
+  useConversationStore,
+  useIsConversationOpen,
+} from './model/conversation.store';

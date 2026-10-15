@@ -1,111 +1,66 @@
 'use client';
 
 import { SearchIcon, X } from 'lucide-react';
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import type { UserSearchResult } from '@/shared/api/users';
-import { usersApi } from '@/shared/api/users';
-import { Button } from '@/shared/ui/button/Button';
-import * as Input from '@/shared/ui/input/Input';
-
-const DEBOUNCE_MS = 300;
-const MIN_QUERY_LENGTH = 2;
+import { type FocusEvent, type KeyboardEvent, useState } from 'react';
+import { UserAvatar } from '@/entities/user';
+import type { UserDto } from '@/shared/api';
+import { Input } from '@/shared/ui/input';
+import { useUserSearch } from '../model/useUserSearch';
 
 interface SearchInputProps {
-  onSelectUser: (user: UserSearchResult) => void;
+  onSelectUser: (user: UserDto) => void;
 }
 
 export function SearchInput({ onSelectUser }: SearchInputProps) {
   const [query, setQuery] = useState('');
-  const [users, setUsers] = useState<UserSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const { isOpen, isLoading, users, error } = useUserSearch(query);
 
-  const searchRequestId = useRef(0);
-
-  useEffect(() => {
-    const normalizedQuery = query.trim();
-
-    if (normalizedQuery.length < MIN_QUERY_LENGTH) {
-      setUsers([]);
-      setIsLoading(false);
-      setError(null);
-
-      return;
-    }
-
-    const requestId = ++searchRequestId.current;
-
-    const timer = setTimeout(async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const results = await usersApi.search(normalizedQuery);
-
-        if (requestId !== searchRequestId.current) {
-          return;
-        }
-
-        setUsers(results);
-      } catch (error) {
-        if (requestId !== searchRequestId.current) {
-          return;
-        }
-
-        setUsers([]);
-        setError(
-          error instanceof Error ? error.message : 'Failed to search users',
-        );
-      } finally {
-        if (requestId === searchRequestId.current) {
-          setIsLoading(false);
-        }
-      }
-    }, DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [query]);
-
-  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value);
-  }, []);
+  const showDropdown = isOpen && !isDismissed;
 
   const handleClear = () => {
     setQuery('');
-    setUsers([]);
-    setError(null);
   };
 
-  const handleSelectUser = (user: UserSearchResult) => {
+  const handleSelectUser = (user: UserDto) => {
     onSelectUser(user);
     setQuery('');
-    setUsers([]);
   };
 
-  const showDropdown = query.trim().length >= MIN_QUERY_LENGTH;
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      setIsDismissed(true);
+    }
+  };
+
+  const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setIsDismissed(true);
+    }
+  };
 
   return (
-    <div className="relative flex flex-col w-full">
-      <Input.Root variant="search">
-        <Input.Icon>
-          <Button variant="search" type="button" aria-label="Search">
-            <SearchIcon aria-hidden="true" />
-          </Button>
+    <search
+      className="relative flex flex-col w-full"
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
+    >
+      <Input variant="search">
+        <Input.Icon className="size-7 md:size-8 lg:size-9 p-1 md:p-1.5 lg:p-2 shrink-0 text-chat-icon-search">
+          <SearchIcon aria-hidden="true" className="size-full" />
         </Input.Icon>
         <Input.Field
-          type="text"
+          type="search"
           placeholder="Search users…"
           value={query}
-          onChange={handleChange}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setIsDismissed(false);
+          }}
+          onFocus={() => setIsDismissed(false)}
           aria-label="Search users by name"
+          autoComplete="off"
+          spellCheck={false}
         />
         {query && (
           <Input.Icon>
@@ -115,26 +70,32 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
               className="text-chat-text-muted hover:text-chat-text-main transition-colors cursor-pointer"
               aria-label="Clear search"
             >
-              <X className="size-4" />
+              <X aria-hidden="true" className="size-4" />
             </button>
           </Input.Icon>
         )}
-      </Input.Root>
+      </Input>
 
       {showDropdown && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-input-glow z-50 overflow-hidden">
+        <div
+          onMouseDown={(event) => event.preventDefault()}
+          className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl shadow-input-glow z-50 overflow-hidden"
+          role="listbox"
+        >
           {isLoading && (
-            <p className="px-4 py-3 text-sm text-chat-text-muted">
+            <p role="status" className="px-4 py-3 text-sm text-chat-text-muted">
               Searching...
             </p>
           )}
 
           {!isLoading && error && (
-            <p className="px-4 py-3 text-sm text-red-500">{error}</p>
+            <p role="alert" className="px-4 py-3 text-sm text-chat-error">
+              {error}
+            </p>
           )}
 
           {!isLoading && !error && users.length === 0 && (
-            <p className="px-4 py-3 text-sm text-chat-text-muted">
+            <p role="status" className="px-4 py-3 text-sm text-chat-text-muted">
               No users found
             </p>
           )}
@@ -146,12 +107,13 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
                   <button
                     type="button"
                     onClick={() => handleSelectUser(user)}
-                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-chat-background transition-colors cursor-pointer"
+                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-chat-background focus-visible:bg-chat-background transition-colors cursor-pointer"
                   >
-                    <span className="size-8 rounded-full bg-chat-icon-action/60 flex items-center justify-center text-white text-xs font-semibold shrink-0">
-                      {user.username.charAt(0).toUpperCase()}
-                    </span>
-
+                    <UserAvatar
+                      username={user.username}
+                      size="sm"
+                      aria-hidden="true"
+                    />
                     <span className="text-sm text-chat-text-main font-medium">
                       {user.username}
                     </span>
@@ -162,6 +124,6 @@ export function SearchInput({ onSelectUser }: SearchInputProps) {
           )}
         </div>
       )}
-    </div>
+    </search>
   );
 }

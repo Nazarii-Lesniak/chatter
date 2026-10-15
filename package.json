@@ -14,9 +14,13 @@
     "lint": "biome check",
     "format": "biome format --write",
     "test": "npm --workspace=server run test",
-    "typecheck": "npm --workspace=server run typecheck"
+    "typecheck": "npm --workspace=server run typecheck",
+    "lint:fsd": "npm --workspace=client run lint:fsd"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.2"
+    "@biomejs/biome": "2.5.15"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

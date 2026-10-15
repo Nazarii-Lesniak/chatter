@@ -1,18 +1,16 @@
 export type UserStatus = 'online' | 'offline';
-export type UserVariant = 'chatWindow' | 'chatList';
 
-export interface UserType {
+export type UserVariant = 'default' | 'compact';
+
+export interface UserSummary {
   id: string;
   username: string;
-  avatarUrl?: string;
-  status: UserStatus;
-  lastSeen?: string;
-  createdAt: string;
-  unreadCount?: number;
+  status?: UserStatus;
   lastMessage?: string;
+  timestamp?: string;
 }
 
 export interface UserContextProps {
-  user: UserType;
+  user: UserSummary;
   variant: UserVariant;
 }

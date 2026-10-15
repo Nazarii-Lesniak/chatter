@@ -1,10 +1,12 @@
+import type { VariantProps } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
-import { renderIcon } from '@/shared/lib/render-icon';
+import { cn } from '@/shared/lib/class-merge';
 import { buttonVariants } from './button-variants';
 
-interface IRoot extends ComponentProps<'button'> {
-  variant: 'sidebar' | 'action' | 'addon' | 'voice' | 'search' | 'auth';
-  children?: React.ReactNode;
+type ButtonVariantProps = VariantProps<typeof buttonVariants>;
+
+interface ButtonProps extends ComponentProps<'button'> {
+  variant: NonNullable<ButtonVariantProps['variant']>;
 }
 
 export function Button({
@@ -13,14 +15,14 @@ export function Button({
   children,
   type = 'button',
   ...props
-}: IRoot) {
+}: ButtonProps) {
   return (
     <button
       type={type}
-      className={buttonVariants({ variant, className })}
+      className={cn(buttonVariants({ variant }), className)}
       {...props}
     >
-      {renderIcon(children)}
+      {children}
     </button>
   );
 }

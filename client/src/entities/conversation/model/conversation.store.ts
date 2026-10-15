@@ -1,113 +1,115 @@
 import { create } from 'zustand';
-import { conversationsApi } from '@/shared/api/conversations';
-import type {
-  Conversation,
-  ConversationMessage,
-} from '@/shared/api/types/conversation.types';
+import {
+  type ConversationDto,
+  conversationsApi,
+  type MessageDto,
+} from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
 
-type MobileView = 'contacts' | 'chat';
+interface FetchOptions {
+  silent?: boolean;
+}
 
 interface ConversationState {
-  conversations: Conversation[];
+  conversations: ConversationDto[];
   activeConversationId: string | null;
-  mobileView: MobileView;
   isLoading: boolean;
   error: string | null;
 
-  fetchConversations: () => Promise<void>;
+  fetchConversations: (options?: FetchOptions) => Promise<void>;
   selectConversation: (conversationId: string) => void;
-  goBackToContacts: () => void;
-  createConversation: (recipientId: string) => Promise<void>;
-  updateLastMessage: (
-    conversationId: string,
-    message: ConversationMessage,
-  ) => void;
+  closeConversation: () => void;
+  startConversation: (recipientId: string) => Promise<void>;
+  updateLastMessage: (message: MessageDto) => void;
+  reset: () => void;
+}
+
+const initialState = {
+  conversations: [],
+  activeConversationId: null,
+  isLoading: false,
+  error: null,
+};
+
+function byMostRecent(a: ConversationDto, b: ConversationDto) {
+  return Date.parse(b.updatedAt) - Date.parse(a.updatedAt);
 }
 
 export const useConversationStore = create<ConversationState>((set, get) => ({
-  conversations: [],
-  activeConversationId: null,
-  mobileView: 'contacts',
-  isLoading: false,
-  error: null,
+  ...initialState,
 
-  fetchConversations: async () => {
-    set({
-      isLoading: true,
-      error: null,
-    });
+  fetchConversations: async ({ silent = false } = {}) => {
+    if (!silent) {
+      set({ isLoading: true, error: null });
+    }
 
     try {
       const conversations = await conversationsApi.getAll();
-
-      const currentActiveId = get().activeConversationId;
-
-      const activeConversationExists = conversations.some(
-        (conversation) => conversation.id === currentActiveId,
-      );
+      const { activeConversationId } = get();
 
       set({
         conversations,
-        activeConversationId: activeConversationExists ? currentActiveId : null,
         isLoading: false,
+        activeConversationId: conversations.some(
+          (conversation) => conversation.id === activeConversationId,
+        )
+          ? activeConversationId
+          : null,
       });
     } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to load conversations',
-        isLoading: false,
-      });
+      if (!silent) {
+        set({
+          error: getErrorMessage(error, 'Failed to load conversations'),
+          isLoading: false,
+        });
+      }
     }
   },
 
-  selectConversation: (conversationId) => {
-    set({ activeConversationId: conversationId, mobileView: 'chat' });
-  },
+  selectConversation: (conversationId) =>
+    set({ activeConversationId: conversationId }),
 
-  goBackToContacts: () => {
-    set({ activeConversationId: null, mobileView: 'contacts' });
-  },
+  closeConversation: () => set({ activeConversationId: null }),
 
-  createConversation: async (recipientId) => {
-    set({ error: null });
+  startConversation: async (recipientId) => {
+    const conversation = await conversationsApi.create({ recipientId });
 
-    try {
-      const conversation = await conversationsApi.create({ recipientId });
-
-      set((state) => {
-        const exists = state.conversations.some(
-          (item) => item.id === conversation.id,
-        );
-
-        return {
-          conversations: exists
-            ? state.conversations
-            : [conversation, ...state.conversations],
-        };
-      });
-    } catch (error) {
-      set({
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to create conversation',
-      });
-    }
-  },
-
-  updateLastMessage: (conversationId, message) => {
     set((state) => ({
-      conversations: state.conversations.map((conversation) =>
-        conversation.id === conversationId
-          ? {
-              ...conversation,
-              lastMessage: message,
-              updatedAt: message.createdAt,
-            }
-          : conversation,
-      ),
+      activeConversationId: conversation.id,
+      conversations: state.conversations.some(
+        (existing) => existing.id === conversation.id,
+      )
+        ? state.conversations
+        : [conversation, ...state.conversations],
     }));
   },
+
+  updateLastMessage: (message) =>
+    set((state) => ({
+      conversations: state.conversations
+        .map((conversation) =>
+          conversation.id === message.conversationId
+            ? {
+                ...conversation,
+                lastMessage: message,
+                updatedAt: message.createdAt,
+              }
+            : conversation,
+        )
+        .sort(byMostRecent),
+    })),
+
+  reset: () => set(initialState),
 }));
+
+export function useActiveConversation(): ConversationDto | undefined {
+  return useConversationStore((state) =>
+    state.conversations.find(
+      (conversation) => conversation.id === state.activeConversationId,
+    ),
+  );
+}
+
+export function useIsConversationOpen(): boolean {
+  return useConversationStore((state) => state.activeConversationId !== null);
+}

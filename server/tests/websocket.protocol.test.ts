@@ -78,12 +78,11 @@ describe('parseClientEvent', () => {
       expect(parseClientEvent(json({ type, payload }))).toBeNull();
     });
 
-    it.each([
-      'conversation:join',
-      'conversation:leave',
-      'message:send',
-    ])('returns null for %s without a payload', (type) => {
-      expect(parseClientEvent(json({ type }))).toBeNull();
-    });
+    it.each(['conversation:join', 'conversation:leave', 'message:send'])(
+      'returns null for %s without a payload',
+      (type) => {
+        expect(parseClientEvent(json({ type }))).toBeNull();
+      },
+    );
   });
 });
