@@ -21,6 +21,8 @@ export function Button({
       type={type}
       className={cn(buttonVariants({ variant }), className)}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }
