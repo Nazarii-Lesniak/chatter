@@ -1,51 +1,44 @@
 import { apiClient } from './api-client';
+import type { Credentials, UserDto } from './types';
 
-export interface AuthUser {
-  id: string;
-  username: string;
-  createdAt: string;
-}
-
-export interface AuthResponse {
-  user: AuthUser;
-}
-
-export interface LoginInput {
-  username: string;
-  password: string;
-}
-
-export interface RegisterInput {
-  username: string;
-  password: string;
+interface AuthResponse {
+  user: UserDto;
 }
 
 export const authApi = {
-  async login(input: LoginInput): Promise<AuthUser> {
-    const response = await apiClient<AuthResponse>('/auth/login', {
+  async login(credentials: Credentials): Promise<UserDto> {
+    const { user } = await apiClient<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: input,
+      body: credentials,
     });
 
-    return response.user;
+    return user;
   },
 
-  async register(input: RegisterInput): Promise<AuthUser> {
-    const response = await apiClient<AuthResponse>('/auth/register', {
+  async register(credentials: Credentials): Promise<UserDto> {
+    const { user } = await apiClient<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: input,
+      body: credentials,
     });
 
-    return response.user;
+    return user;
   },
 
-  async getCurrentUser(): Promise<AuthUser> {
-    const response = await apiClient<AuthResponse>('/auth/me');
+  async getCurrentUser(): Promise<UserDto> {
+    const { user } = await apiClient<AuthResponse>('/auth/me');
 
-    return response.user;
+    return user;
   },
 
   async logout(): Promise<void> {
     await apiClient('/auth/logout', { method: 'POST' });
+  },
+
+  async createWebSocketTicket(): Promise<string> {
+    const { ticket } = await apiClient<{ ticket: string }>('/auth/ws-ticket', {
+      method: 'POST',
+    });
+
+    return ticket;
   },
 };

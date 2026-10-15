@@ -1,11 +1,10 @@
 import { Avatar } from './Avatar';
-import { Badge } from './Badge';
 import { UserContent } from './Content';
-import { CreatedAt } from './CreatedAt';
 import { Info } from './Info';
 import { LastMessage } from './LastMessage';
-import { LastSeen } from './LastSeen';
 import { Meta } from './Meta';
+import { Status } from './Status';
+import { Timestamp } from './Timestamp';
 import { Username } from './Username';
 
 export const User = Object.assign(UserContent, {
@@ -13,8 +12,7 @@ export const User = Object.assign(UserContent, {
   Info,
   Meta,
   Username,
-  LastSeen,
+  Status,
   LastMessage,
-  CreatedAt,
-  Badge,
+  Timestamp,
 });

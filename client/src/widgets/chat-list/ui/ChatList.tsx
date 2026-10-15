@@ -1,27 +1,27 @@
 'use client';
 
 import { PanelLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useConversationStore } from '@/entities/conversation/conversation.store';
-import type { UserType } from '@/entities/user/model/types';
-import { User } from '@/entities/user/ui';
+import { useEffect, useState } from 'react';
+import {
+  useConversationStore,
+  useIsConversationOpen,
+} from '@/entities/conversation';
 import { SearchInput } from '@/features/search-by-name';
+import type { UserDto } from '@/shared/api';
 import { cn } from '@/shared/lib/class-merge';
-import { Button } from '@/shared/ui/button/Button';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
+import { Button } from '@/shared/ui/button';
+import { ConversationListItem } from './ConversationListItem';
 
 interface ChatListProps {
   onOpenSidebar: () => void;
 }
 
 export function ChatList({ onOpenSidebar }: ChatListProps) {
-  const router = useRouter();
-
   const conversations = useConversationStore((state) => state.conversations);
   const activeConversationId = useConversationStore(
     (state) => state.activeConversationId,
   );
-  const mobileView = useConversationStore((state) => state.mobileView);
   const isLoading = useConversationStore((state) => state.isLoading);
   const error = useConversationStore((state) => state.error);
   const fetchConversations = useConversationStore(
@@ -30,27 +30,34 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
   const selectConversation = useConversationStore(
     (state) => state.selectConversation,
   );
-  const createConversation = useConversationStore(
-    (state) => state.createConversation,
+  const startConversation = useConversationStore(
+    (state) => state.startConversation,
   );
+  const isConversationOpen = useIsConversationOpen();
+
+  const [startError, setStartError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchConversations();
+    void fetchConversations();
   }, [fetchConversations]);
 
-  const getNormalizedErrorMessage = (error: string) => {
-    if (error === 'Invalid or expired token') {
-      return 'The session has expired. Please login again.';
-    }
+  const handleSelectUser = async (user: UserDto) => {
+    setStartError(null);
 
-    return 'Something went wrong, please try again later';
+    try {
+      await startConversation(user.id);
+    } catch (error) {
+      setStartError(getErrorMessage(error, 'Failed to start a conversation'));
+    }
   };
+
+  const hasLoaded = !isLoading && !error;
 
   return (
     <div
       className={cn(
         'flex flex-col w-full gap-5 md:w-80 xl:w-96 md:shrink-0',
-        mobileView === 'chat'
+        isConversationOpen
           ? 'hidden md:flex'
           : 'flex animate-slide-in-left md:animate-none',
       )}
@@ -60,96 +67,69 @@ export function ChatList({ onOpenSidebar }: ChatListProps) {
           variant="addon"
           aria-label="Open sidebar"
           onClick={onOpenSidebar}
-          className="lg:hidden shrink-0"
+          className="lg:hidden"
         >
           <PanelLeft aria-hidden="true" />
         </Button>
-        <SearchInput
-          onSelectUser={(user) => void createConversation(user.id)}
-        />
+
+        <SearchInput onSelectUser={handleSelectUser} />
       </div>
 
-      <div className="py-2 pr-5 pl-3 md:py-3 md:pr-6 md:pl-4 flex flex-col gap-4 p-4 rounded-3xl bg-white shadow-input-glow flex-1 overflow-y-auto custom-scrollbar">
-        <h2 className="text-base md:text-lg font-semibold">People</h2>
+      {startError && (
+        <p role="alert" className="text-sm text-chat-error">
+          {startError}
+        </p>
+      )}
+
+      <section
+        aria-labelledby="people-heading"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto rounded-3xl bg-white p-4 py-2 pl-3 pr-5 shadow-input-glow custom-scrollbar md:py-3 md:pl-4 md:pr-6"
+      >
+        <h2 id="people-heading" className="text-base font-semibold md:text-lg">
+          People
+        </h2>
 
         {isLoading && (
-          <p className="text-sm text-chat-text-muted text-center py-4">
+          <p
+            role="status"
+            className="py-4 text-center text-sm text-chat-text-muted"
+          >
             Loading conversations...
           </p>
         )}
 
         {error && (
-          <div className="flex flex-col items-center">
-            <p className="text-sm text-chat-text-muted text-center py-4">
-              {getNormalizedErrorMessage(error)}
+          <div role="alert" className="flex flex-col items-center">
+            <p className="py-4 text-center text-sm text-chat-text-muted">
+              {error}
             </p>
+
             <Button
-              type="button"
-              variant="auth"
+              variant="primary"
               className="w-full"
-              onClick={() => router.push('/login')}
+              onClick={() => void fetchConversations()}
             >
-              Login
+              Try again
             </Button>
           </div>
         )}
 
-        {!isLoading && !error && conversations.length === 0 && (
-          <p className="text-sm text-chat-text-muted text-center py-4">
+        {hasLoaded && conversations.length === 0 && (
+          <p className="py-4 text-center text-sm text-chat-text-muted">
             No conversations yet
           </p>
         )}
 
-        {!isLoading &&
-          !error &&
-          conversations.map((conversation) => {
-            const lastActivityTime =
-              conversation.lastMessage?.createdAt ??
-              conversation.updatedAt ??
-              conversation.createdAt;
-
-            const user: UserType = {
-              id: conversation.participant.id,
-              username: conversation.participant.username,
-              createdAt: lastActivityTime,
-              status: 'offline',
-              lastMessage: conversation.lastMessage?.content,
-            };
-
-            const isActive = conversation.id === activeConversationId;
-
-            return (
-              <button
-                type="button"
-                key={conversation.id}
-                onClick={() => selectConversation(conversation.id)}
-                className={`p-2 rounded-2xl cursor-pointer transition-colors ${
-                  isActive
-                    ? 'bg-chat-background'
-                    : 'hover:bg-chat-background/60'
-                }`}
-              >
-                <User user={user} variant="chatList">
-                  <User.Avatar />
-                  <User.Info>
-                    <User.Username />
-                    <User.LastMessage />
-                  </User.Info>
-                  <User.Meta>
-                    <User.CreatedAt />
-                    {user.unreadCount && user.unreadCount > 0 ? (
-                      <div className="ml-auto flex items-center justify-center size-5 rounded-full bg-orange-500 text-chat-text-white text-[10px] ">
-                        99
-                      </div>
-                    ) : (
-                      <User.Badge />
-                    )}
-                  </User.Meta>
-                </User>
-              </button>
-            );
-          })}
-      </div>
+        {hasLoaded &&
+          conversations.map((conversation) => (
+            <ConversationListItem
+              key={conversation.id}
+              conversation={conversation}
+              isActive={conversation.id === activeConversationId}
+              onSelect={selectConversation}
+            />
+          ))}
+      </section>
     </div>
   );
 }

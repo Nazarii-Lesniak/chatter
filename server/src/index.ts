@@ -3,7 +3,7 @@ import { createApp } from './app.js';
 
 import { AuthService } from './auth/auth.service.js';
 import { env } from './config/env.js';
-import { database } from './infrastructure/database/batabase.js';
+import { database } from './infrastructure/database/database.js';
 import { attachWebSocketServer } from './infrastructure/websocket/websocket.server.js';
 import { ConversationService } from './modules/conversations/conversation.service.js';
 import { PostgresConversationRepository } from './modules/conversations/postgres-conversation.repository.js';

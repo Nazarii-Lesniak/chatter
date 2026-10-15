@@ -1,112 +1,105 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { type SubmitEvent, useState } from 'react';
-import { useAuthStore } from '@/entities/user/model/auth.store';
-import { authApi } from '@/shared/api/auth.api';
-import { Button } from '@/shared/ui/button/Button';
-import { Input } from '@/shared/ui/input/Input';
+import { useActionState, useId } from 'react';
+import { useAuthStore } from '@/entities/user';
+import type { Credentials, UserDto } from '@/shared/api';
+import { getErrorMessage } from '@/shared/lib/get-error-message';
+import { Button } from '@/shared/ui/button';
+import { Input } from '@/shared/ui/input';
 
 interface AuthFormProps {
-  mode: 'login' | 'register';
-  submitText: string;
-  usernamePlaceholder?: string;
-  passwordPlaceholder?: string;
+  submit: (credentials: Credentials) => Promise<UserDto>;
+  submitLabel: string;
+  usernamePlaceholder: string;
+  passwordPlaceholder: string;
+  passwordAutoComplete: 'current-password' | 'new-password';
 }
 
-export function AuthForm({
-  mode,
-  submitText,
-  usernamePlaceholder = 'Your username',
-  passwordPlaceholder = 'Your password',
-}: AuthFormProps) {
-  const router = useRouter();
+interface FormState {
+  error: string | null;
+  username: string;
+}
 
+const LABEL_CLASS =
+  'text-xs md:text-sm font-medium text-chat-text-main tracking-wide';
+
+export function AuthForm({
+  submit,
+  submitLabel,
+  usernamePlaceholder,
+  passwordPlaceholder,
+  passwordAutoComplete,
+}: AuthFormProps) {
+  const id = useId();
   const setUser = useAuthStore((state) => state.setUser);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [state, formAction, isPending] = useActionState(
+    async (_previous: FormState, formData: FormData): Promise<FormState> => {
+      const username = String(formData.get('username') ?? '').trim();
+      const password = String(formData.get('password') ?? '');
 
-  async function handleSubmit(event: SubmitEvent) {
-    event.preventDefault();
+      try {
+        setUser(await submit({ username, password }));
 
-    setError(null);
-    setIsLoading(true);
-
-    try {
-      const user =
-        mode === 'login'
-          ? await authApi.login({ username, password })
-          : await authApi.register({ username, password });
-
-      setUser(user);
-      router.push('/');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Something went wrong');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+        return { error: null, username };
+      } catch (error) {
+        return {
+          error: getErrorMessage(error, 'Something went wrong'),
+          username,
+        };
+      }
+    },
+    { error: null, username: '' },
+  );
 
   return (
-    <form
-      className="flex flex-col gap-4 md:gap-5 w-full"
-      onSubmit={handleSubmit}
-    >
+    <form action={formAction} className="flex flex-col gap-4 md:gap-5 w-full">
       <div className="flex flex-col gap-1 md:gap-1.5">
-        <label
-          htmlFor={`${mode}-username`}
-          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
-        >
+        <label htmlFor={`${id}-username`} className={LABEL_CLASS}>
           Username
         </label>
         <Input variant="auth">
           <Input.Field
-            id={`${mode}-username`}
+            id={`${id}-username`}
+            name="username"
             type="text"
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder={usernamePlaceholder}
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            disabled={isLoading}
+            defaultValue={state.username}
+            disabled={isPending}
             required
           />
         </Input>
       </div>
 
       <div className="flex flex-col gap-1 md:gap-1.5">
-        <label
-          htmlFor={`${mode}-password`}
-          className="text-xs md:text-sm font-medium text-chat-text-main tracking-wide"
-        >
+        <label htmlFor={`${id}-password`} className={LABEL_CLASS}>
           Password
         </label>
         <Input variant="auth">
           <Input.Field
-            id={`${mode}-password`}
+            id={`${id}-password`}
+            name="password"
             type="password"
-            autoComplete={
-              mode === 'login' ? 'current-password' : 'new-password'
-            }
+            autoComplete={passwordAutoComplete}
             placeholder={passwordPlaceholder}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            disabled={isLoading}
+            disabled={isPending}
             required
           />
         </Input>
       </div>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-500">
-          {error}
+      {state.error && (
+        <p role="alert" className="text-sm text-chat-error">
+          {state.error}
         </p>
       )}
 
-      <Button type="submit" variant="auth" disabled={isLoading}>
-        {isLoading ? `${submitText}…` : submitText}
+      <Button type="submit" variant="primary" disabled={isPending}>
+        {isPending ? `${submitLabel}…` : submitLabel}
       </Button>
     </form>
   );

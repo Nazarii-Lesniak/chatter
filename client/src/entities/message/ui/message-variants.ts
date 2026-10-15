@@ -29,3 +29,5 @@ export const tailVariants = cva(
     },
   },
 );
+
+export type MessageVariant = 'companion' | 'own';
