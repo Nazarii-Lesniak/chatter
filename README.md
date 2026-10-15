@@ -1,7 +1,7 @@
 # Chatter — Real-Time Chat Application
 
 [![Live Demo on Vercel](https://img.shields.io/badge/Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://chatter-app-io.vercel.app)
-[![CI](https://img.shields.io/github/actions/workflow/status/Nazarii-Lesniak/chatter/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/Nazarii-Lesniak/chatter/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/Nazarii-Lesniak/chatter/ci.yml?branch=main&event=push&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/Nazarii-Lesniak/chatter/actions/workflows/ci.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
@@ -31,7 +31,8 @@
   - Three-column layout displaying the floating pill sidebar, conversation list, and chat window simultaneously.
 - **Long-Term Session Persistence:** Secure authentication with JWT stored in HTTP-only cookies, lasting **30 days** without premature logouts.
 - **Protected Routes & Redirection:** Unauthorized users are automatically redirected to the login page; logged-in users cannot access auth forms.
-- **Conversation Previews:** The conversation list displays a snippet of the latest message and human-readable timestamps (`12:45`, `Yesterday`, `Mon`, or `Sep 30`).
+- **Live Conversation List:** Previews show the latest message with human-readable timestamps (`12:45`, `Yesterday`, `Mon`, or `Sep 30`); conversations re-order by activity in real time, including the ones that are not open.
+- **Resilient Connection:** The WebSocket client authenticates with short-lived tickets, reconnects with exponential backoff and jitter, a heartbeat that detects dead connections, instant reconnect when the tab or network comes back, and a resync of missed messages afterwards.
 - **Smooth Auto-Hiding Scrollbars:** Custom scrollbars themed to match the app palette that auto-fade 1 second after scrolling stops.
 - **User Discovery:** Real-time search to discover other registered users and start private conversations.
 
@@ -44,7 +45,7 @@
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
 - **Icons:** [Lucide React](https://lucide.dev/)
 - **State Management:** [Zustand](https://zustand-demo.pmnd.rs/)
-- **Architecture:** Feature-Sliced Design (FSD)
+- **Architecture:** Feature-Sliced Design (FSD), verified by [Steiger](https://github.com/feature-sliced/steiger)
 
 ### Server
 - **Runtime:** [Node.js](https://nodejs.org/) with [Express 5](https://expressjs.com/)
@@ -132,14 +133,19 @@ For known gaps and next steps see the [Roadmap](#-roadmap--known-limitations).
 ```text
 chatter/
 ├── client/                               # Next.js frontend application (Feature-Sliced Design)
-│   ├── src/
-│   │   ├── app/                          # App Router: routes, pages, global styles, and providers
-│   │   ├── widgets/                      # Composite UI: large, self-contained layout blocks (Sidebar, ChatWindow)
-│   │   ├── features/                     # User actions: business-value capabilities (auth, send-message, search)
-│   │   ├── entities/                     # Business entities: core domain logic and internal state (user, message)
-│   │   └── shared/                       # Reusable primitives: abstract UI components, API clients, and utilities
+│   ├── app/                              # Next.js App Router: thin route files only, each re-exports a page
+│   ├── pages/                            # Intentionally empty placeholder (see "Client architecture" below)
+│   ├── src/                              # Feature-Sliced Design layers, imports only go downwards
+│   │   ├── app/                          # App layer: global styles, session handling (auth provider, sign-out cleanup)
+│   │   ├── pages/                        # Page compositions: chat (owns the realtime wiring), login, register, error, not-found
+│   │   ├── widgets/                      # Composite UI blocks: Sidebar, ChatList, ChatWindow
+│   │   ├── features/                     # User actions: auth forms, send-message, search-by-name
+│   │   ├── entities/                     # Business entities and their stores: user (+ presence), conversation, message
+│   │   └── shared/                       # api (REST + WebSocket client), config, lib (hooks, formatters), ui primitives
 │   ├── .env.example                      # Client environment variables template
 │   ├── next.config.ts                    # Next.js configuration + /api proxy to the backend
+│   ├── next.config.ts                    # Next.js configuration, /api proxy to the backend, security headers
+│   ├── steiger.config.mjs                # FSD architecture lint rules
 │   ├── package.json                      # Frontend dependencies & scripts
 │   └── tsconfig.json                     # Frontend TypeScript configuration
 │
@@ -165,11 +171,41 @@ chatter/
 
 ---
 
+## 🧱 Client Architecture
+
+The client follows [Feature-Sliced Design](https://feature-sliced.design/). Layers may only import from the layers **below** them, and every slice exposes a public API through its `index.ts`:
+
+```text
+app  →  pages  →  widgets  →  features  →  entities  →  shared
+```
+
+| Layer | Responsibility in Chatter |
+| --- | --- |
+| `app` | Session lifecycle: restores the session, redirects, wipes chat state on sign-out, turns a `401` into a sign-out |
+| `pages` | Composes widgets. `pages/chat` connects the WebSocket to the entity stores (`useChatRealtime`) |
+| `widgets` | Self-contained blocks: `Sidebar`, `ChatList`, `ChatWindow` |
+| `features` | One user action each: sign in / register, search users, send a message |
+| `entities` | Domain state: `user` (session + presence), `conversation`, `message` |
+| `shared` | No business knowledge: API client, WebSocket client, UI kit, hooks, formatters |
+
+**Why two `app` folders and an empty `pages` folder?** Next.js requires its router in `app/`, and treats `src/pages` as the legacy Pages Router. The routes therefore live in `client/app` (thin re-exports), the FSD layers live in `client/src`, and the empty `client/pages` folder tells Next.js to ignore `src/pages`.
+
+The architecture is enforced in CI:
+
+```bash
+npm run lint:fsd    # Steiger: layer imports, public APIs, slice naming
+```
+
+> [!NOTE]
+> `features` and `widgets` are extracted on purpose even though each currently has a single consumer. `steiger.config.mjs` disables the `insignificant-slice` rule for them; every other rule stays on.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js** 20.x or higher
+- **Node.js** 22.x or higher (see `.nvmrc`)
 - **npm** 10.x or higher
 - **PostgreSQL** instance (local or hosted e.g. Neon, Supabase, Railway)
 
@@ -283,6 +319,7 @@ npm run build:client
 npm test            # server tests (Vitest)
 npm run typecheck   # type-check server sources and tests
 npm run lint        # Biome
+npm run lint:fsd    # Feature-Sliced Design boundaries (Steiger)
 ```
 
 The server tests run against the in-memory repositories, so **no database is needed**. They cover:
@@ -298,7 +335,7 @@ The server tests run against the in-memory repositories, so **no database is nee
 | --- | --- |
 | Lint | Biome (lint + formatting) |
 | Server | type-check (sources and tests), build, tests |
-| Client | production build, which also type-checks the app |
+| Client | type-check, FSD architecture, tests, production build |
 
 ---
 
@@ -313,16 +350,5 @@ The server tests run against the in-memory repositories, so **no database is nee
 **Vercel** — `NEXT_PUBLIC_API_URL=https://<your-service>.onrender.com`, enabled for **Production, Preview and Development**.
 
 **Render** — `DATABASE_URL`, `JWT_SECRET`, `CLIENT_ORIGIN` (your Vercel URL), `NODE_ENV=production` and `TRUST_PROXY` (see [Rate limiting](#rate-limiting)).
-
----
-
-## 🗺️ Roadmap & Known Limitations
-
-- [ ] Schema validation of REST payloads with Zod, and forms with React Hook Form
-- [ ] One-time WebSocket tickets (currently a ticket can be reused during its 60 s lifetime)
-- [ ] Refresh tokens and server-side session revocation (logout currently only clears the cookie)
-- [ ] `SameSite=Lax` cookie, now that all browser traffic is same-origin
-- [ ] Message pagination (the full history of a conversation is loaded at once)
-- [ ] Client tests (Vitest + Testing Library) and end-to-end tests (Playwright)
 
 ---
